@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trabalho Padrão · Gestão de processos e melhoria contínua</title>
+  <meta name="description" content="Protótipo funcional para gestão de atividades recorrentes, padronização de processos e melhoria contínua em equipes de TI.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230F6CBD'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <style>
+/* Trabalho Padrão — visual inspirado no Fluent Design (identidade própria) */
+:root{
+  --brand:#0F6CBD; --brand-d:#115EA3; --brand-dd:#0C3B5E; --brand-l:#EBF3FC; --brand-ll:#F5F9FD;
+  --top:#0C4A82; --teal:#0E7C86; --teal-l:#E3F4F5;
+  --ink:#242424; --ink2:#424242; --muted:#616161; --muted2:#8A8A8A;
+  --line:#E0E0E0; --line2:#EEEEEE; --bg:#F5F6F8; --card:#fff;
+  --green:#107C10; --green-l:#E7F4E7; --amber:#8A5A00; --amber-l:#FFF4DB; --gray-l:#F0F0F0;
+  --r:6px; --r2:8px;
+  --sh:0 1px 2px rgba(0,0,0,.08),0 0 2px rgba(0,0,0,.05);
+  --sh2:0 12px 32px rgba(0,0,0,.18),0 0 2px rgba(0,0,0,.12);
+  --font:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+h1,h2,h3,h4,p{margin:0}
+a{color:var(--brand);text-decoration:none}
+.ic{flex:none;vertical-align:middle}
+#app{display:flex;flex-direction:column;height:100vh}
+.shell{display:flex;flex:1;min-height:0}
+
+/* Topbar */
+.topbar{height:48px;background:var(--top);color:#fff;display:flex;align-items:center;gap:14px;padding:0 14px;flex:none;position:relative;z-index:30}
+.burger{display:none;background:none;border:0;color:#fff;padding:6px;border-radius:6px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;white-space:nowrap}
+.brand-mark{width:26px;height:26px;border-radius:7px;background:#fff;display:grid;place-items:center}
+.brand small{font-weight:400;opacity:.75;font-size:12px;padding-left:10px;border-left:1px solid rgba(255,255,255,.3)}
+.top-search{flex:1;max-width:420px;margin-left:12px;position:relative}
+.topbar .top-search input{width:100%;height:32px;border-radius:6px;border:0;background:rgba(255,255,255,.16);color:#fff;border:0;border-bottom:0;padding:0 12px 0 34px;font:inherit}
+.topbar .top-search input::placeholder{color:rgba(255,255,255,.75)}
+.topbar .top-search input:focus{outline:2px solid #fff;background:rgba(255,255,255,.24)}
+.top-search .ic{position:absolute;left:10px;top:8px;opacity:.9;color:#fff;pointer-events:none}
+.top-r{margin-left:auto;display:flex;align-items:center;gap:12px}
+.pill{font-size:12px;background:rgba(255,255,255,.14);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.tpill{display:flex;align-items:center;gap:8px;background:#fff;color:var(--brand-dd);border:0;border-radius:999px;padding:4px 12px;font-weight:600;font-size:12.5px;max-width:260px}
+.tpill i{width:8px;height:8px;border-radius:50%;background:var(--teal);animation:blink 1.2s infinite}
+.tpill.paused i{background:#C19C00;animation:none}
+.tpill span.n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;color:var(--ink2)}
+@keyframes blink{50%{opacity:.25}}
+.seg{display:flex;background:rgba(255,255,255,.14);border-radius:8px;padding:2px}
+.seg button{border:0;background:none;color:#fff;padding:5px 12px;border-radius:6px;font-size:13px;opacity:.85}
+.seg button.on{background:#fff;color:var(--brand-dd);font-weight:600;opacity:1}
+.who{display:flex;align-items:center;gap:8px;line-height:1.15}
+.who b{font-size:13px;font-weight:600;display:block}
+.who small{font-size:11.5px;opacity:.8}
+.av{display:inline-grid;place-items:center;border-radius:50%;color:#fff;font-weight:600;flex:none;width:28px;height:28px;font-size:11px}
+.icon-btn{border:0;background:none;padding:6px;border-radius:6px;color:inherit;display:inline-grid;place-items:center}
+.icon-btn:hover{background:rgba(0,0,0,.06)}
+
+/* Sidebar */
+.sidebar{width:248px;flex:none;background:#fff;border-right:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.side-h{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);padding:6px 12px 8px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:6px;color:var(--ink2);font-weight:500;position:relative}
+.nav-item:hover{background:var(--gray-l)}
+.nav-item.on{background:var(--brand-l);color:var(--brand-dd);font-weight:600}
+.nav-item.on::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:3px;background:var(--brand)}
+.side-foot{margin-top:auto;padding:12px;border-top:1px solid var(--line2);font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px}
+.side-foot button{border:0;background:none;color:var(--brand);padding:0;text-align:left;font-size:12.5px}
+.side-foot button:hover{text-decoration:underline}
+
+/* Main */
+.main{flex:1;overflow:auto;padding:24px 28px 56px;min-width:0}
+.main:focus{outline:none}
+.page{max-width:1280px;margin:0 auto}
+.phead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.eyebrow{font-size:12px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.phead h1{font-size:26px;font-weight:600;letter-spacing:-.01em}
+.phead p{color:var(--muted);margin-top:4px;max-width:720px}
+.phead-r{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Cards, grids */
+.card{background:var(--card);border-radius:var(--r2);box-shadow:var(--sh);border:1px solid var(--line2)}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px 0;flex-wrap:wrap}
+.card-h h2{font-size:15px;font-weight:600}
+.card-h small{color:var(--muted);font-size:12px}
+.card-b{padding:14px 16px 16px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-ms{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
+.g-sm{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}
+.mt{margin-top:16px}
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--brand-ll);border:1px solid #D6E6F7;color:var(--brand-dd);padding:10px 14px;border-radius:var(--r2);font-size:13px}
+.note .ic{margin-top:1px;color:var(--brand)}
+.note.warn{background:var(--amber-l);border-color:#F2DDA6;color:#5E3E00}
+.note.warn .ic{color:var(--amber)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border-radius:var(--r2);padding:14px 16px;box-shadow:var(--sh);border:1px solid var(--line2);border-top:3px solid var(--brand)}
+.kpi.t{border-top-color:var(--teal)}.kpi.g{border-top-color:var(--green)}.kpi.s{border-top-color:#A9B4C0}.kpi.a{border-top-color:#C19C00}
+.kpi-l{font-size:12px;color:var(--muted);font-weight:500}
+.kpi-v{font-size:28px;font-weight:600;line-height:1.15;margin-top:4px;letter-spacing:-.02em}
+.kpi-s{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #C7C7C7;background:#fff;color:var(--ink);border-radius:var(--r);padding:6px 12px;font-weight:600;font-size:13px;line-height:1.2;white-space:nowrap;text-decoration:none}
+.btn:hover{background:#F5F5F5}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-d)}
+.btn.subtle{border-color:transparent;background:var(--gray-l)}
+.btn.subtle:hover{background:#E6E6E6}
+.btn.ghost{border-color:transparent;background:none;color:var(--brand);font-weight:600}
+.btn.ghost:hover{background:var(--brand-l)}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+.btn:disabled,.btn.dis{opacity:.5;cursor:not-allowed}
+.btn.danger{color:#A4262C}
+.btn:focus-visible,.nav-item:focus-visible,.ev:focus-visible,.cal-day:focus-visible,button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap;background:var(--gray-l);color:var(--ink2)}
+.b-blue{background:var(--brand-l);color:var(--brand-d)}
+.b-teal{background:var(--teal-l);color:#07555C}
+.b-green{background:var(--green-l);color:#0B5A0B}
+.b-amber{background:var(--amber-l);color:#7A4E00}
+.b-gray{background:var(--gray-l);color:var(--ink2)}
+.b-outline{background:#fff;border:1px solid var(--line);color:var(--muted);font-weight:500}
+.b-dashed{background:#fff;border:1px dashed #9AA7B5;color:var(--muted);font-weight:500}
+.b-blue-o{background:#fff;border:1px solid #B4D6FA;color:var(--brand-d);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip-btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px;font-size:13px;color:var(--ink2)}
+.chip-btn.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.chip-btn:hover:not(.on){background:var(--gray-l)}
+
+/* Forms */
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label,.lbl{font-size:12.5px;font-weight:600;color:var(--ink2)}
+.field small{color:var(--muted);font-size:12px}
+input[type=text],input[type=search],input[type=number],input[type=date],input[type=time],select,textarea{font:inherit;color:var(--ink);border:1px solid #C7C7C7;border-bottom-color:#8A8A8A;border-radius:var(--r);padding:7px 10px;background:#fff;width:100%;min-width:0}
+textarea{resize:vertical;min-height:72px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:-1px;border-color:var(--brand)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px}
+.chk input{width:16px;height:16px;accent-color:var(--brand)}
+.chk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 12px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+.filters .field{margin:0;min-width:160px}
+.sbox{position:relative;min-width:240px}
+.sbox input{padding-left:32px}
+.sbox .ic{position:absolute;left:10px;top:9px;color:var(--muted)}
+
+/* Tables */
+.tbl-wrap{overflow:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{position:sticky;top:0;background:#FAFAFA;text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.tbl tbody tr:hover{background:var(--brand-ll)}
+.tbl tr.click{cursor:pointer}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tfoot td{font-weight:600;background:#FAFAFA}
+.cell-name{display:flex;gap:10px;align-items:center}
+.cell-name b{font-weight:600;display:block}
+.cell-name small{color:var(--muted);font-size:12px;display:block}
+.fileic{width:32px;height:32px;border-radius:6px;background:var(--brand-l);color:var(--brand);display:grid;place-items:center;flex:none}
+.row-acts{display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap}
+.person{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.person .av{width:22px;height:22px;font-size:9.5px}
+.avs{display:inline-flex}
+.avs .av{width:24px;height:24px;font-size:9.5px;margin-left:-6px;border:2px solid #fff}
+.avs .av:first-child{margin-left:0}
+.empty{text-align:center;padding:36px 16px;color:var(--muted)}
+.empty .ic{color:#A9B4C0;margin-bottom:6px}
+.empty h3{color:var(--ink);font-size:15px;margin-bottom:4px}
+
+/* Calendar */
+.cal{border:1px solid var(--line);border-radius:var(--r2);overflow:auto;background:#fff}
+.cal-in{min-width:780px}
+.cal-head,.cal-body{display:grid;grid-template-columns:56px repeat(5,minmax(0,1fr))}
+.cal-head{border-bottom:1px solid var(--line);background:#FAFAFA;position:sticky;top:0;z-index:2}
+.cal-day{border:0;background:none;padding:8px 6px 6px;text-align:center;border-left:1px solid var(--line2);color:var(--muted);font-size:12px}
+.cal-day b{display:block;font-size:18px;color:var(--ink);font-weight:600;margin-top:1px}
+.cal-day.today b{background:var(--brand);color:#fff;border-radius:50%;width:30px;height:30px;line-height:30px;margin:1px auto 0}
+.cal-day.sel{background:var(--brand-l);box-shadow:inset 0 -3px 0 var(--brand)}
+.cal-day:hover{background:var(--gray-l)}.cal-day.sel:hover{background:var(--brand-l)}
+.cal-times div{font-size:11px;color:var(--muted2);text-align:right;padding-right:8px;transform:translateY(-7px)}
+.cal-col{position:relative;border-left:1px solid var(--line2);background-image:linear-gradient(to bottom,var(--line2) 1px,transparent 1px)}
+.cal-col.today{background-color:#FBFDFF}
+.cal-col.sel{background-color:var(--brand-ll)}
+.now{position:absolute;left:0;right:0;height:2px;background:#C50F1F;z-index:1}
+.now::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#C50F1F}
+.ev{position:absolute;padding:3px 6px;border-radius:5px;border:0;border-left:3px solid var(--brand);background:var(--brand-l);color:var(--brand-dd);font-size:12px;line-height:1.25;overflow:hidden;cursor:pointer;text-align:left;z-index:1}
+.ev b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}
+.ev:hover{filter:brightness(.97);z-index:3;box-shadow:var(--sh)}
+.ev.s-run{background:var(--teal-l);border-left-color:var(--teal);color:#07555C}
+.ev.s-done{background:var(--green-l);border-left-color:var(--green);color:#0B5A0B}
+.ev.s-none{background:#F3F3F3;border-left-color:#A8A8A8;color:#616161}
+.ev.s-part{background:var(--amber-l);border-left-color:#C19C00;color:#7A4E00}
+.ev.s-stop{background:#F3F3F3;border-left-color:#C19C00;color:#616161}
+.ev.nostd{border-style:dashed;border-top:1px dashed #9AA7B5;border-right:1px dashed #9AA7B5;border-bottom:1px dashed #9AA7B5}
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.cal-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.calbar{display:flex;gap:8px;align-items:center}
+.calbar b{font-size:14px;min-width:150px;text-align:center}
+
+/* Activity list */
+.acts{display:flex;flex-direction:column;gap:10px}
+.act{display:grid;grid-template-columns:78px minmax(0,1fr) auto;gap:14px;padding:14px;border:1px solid var(--line2);border-radius:var(--r2);background:#fff;align-items:center}
+.act:hover{border-color:#C9DDF2}
+.act.done{background:#FAFCFA}
+.act-time b{display:block;font-size:17px;font-weight:600}
+.act-time span{font-size:12px;color:var(--muted)}
+.act-main h4{font-size:14.5px;font-weight:600}
+.act-main p{color:var(--muted);font-size:13px;margin:2px 0 8px}
+.act-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:420px}
+
+/* Modal */
+.modal-root{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px}
+.modal-back{position:absolute;inset:0;background:rgba(0,0,0,.4)}
+.modal{position:relative;background:#fff;border-radius:10px;box-shadow:var(--sh2);width:100%;max-width:560px;max-height:calc(100vh - 32px);display:flex;flex-direction:column}
+.modal.wide{max-width:760px}.modal.xl{max-width:900px}.modal.sm{max-width:440px}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px}
+.modal-h h2{font-size:18px;font-weight:600}
+.modal-b{padding:8px 20px 16px;overflow:auto}
+.modal-f{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--line2);flex-wrap:wrap;background:#FAFAFA;border-radius:0 0 10px 10px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:8px 14px;font-size:13.5px;margin-bottom:6px}
+.kv dt{color:var(--muted)}.kv dd{margin:0}
+.sec-t{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+.mini-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.mini-list li{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;background:#FAFAFA;border-radius:6px}
+
+/* Drawer */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);background:#fff;z-index:50;box-shadow:var(--sh2);display:flex;flex-direction:column;animation:slide .18s ease-out}
+@keyframes slide{from{transform:translateX(40px);opacity:0}}
+.dr-h{padding:18px 20px 12px;border-bottom:1px solid var(--line2)}
+.dr-h .row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.dr-h h2{font-size:20px;font-weight:600;margin:6px 0 6px}
+.dr-b{flex:1;overflow:auto;padding:4px 20px 28px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line2);margin:10px -20px 0;padding:0 20px}
+.tabs button{border:0;background:none;padding:8px 12px;color:var(--muted);font-weight:600;border-bottom:3px solid transparent}
+.tabs button.on{color:var(--brand-dd);border-bottom-color:var(--brand)}
+.steps{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.step{display:flex;gap:12px;padding:12px;border:1px solid var(--line2);border-radius:var(--r2);background:#fff}
+.step .n{width:26px;height:26px;border-radius:50%;background:var(--brand-l);color:var(--brand-d);display:grid;place-items:center;font-weight:600;font-size:13px;flex:none}
+.step.ok{background:#FAFCFA}.step.ok .n{background:var(--green);color:#fff}
+.step b{display:block;font-weight:600}.step p{color:var(--muted);font-size:13px;margin-top:2px}
+.step label{display:flex;gap:10px;cursor:pointer;width:100%}
+.step input{margin-top:4px;accent-color:var(--green);width:16px;height:16px;flex:none}
+.res-list{display:flex;flex-direction:column;gap:6px}
+.doc{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line2);border-radius:var(--r);background:#fff;text-align:left;width:100%}
+.doc:hover{background:var(--brand-ll);border-color:#C9DDF2}
+.doc b{display:block;font-weight:600;font-size:13px}.doc small{color:var(--muted)}
+.doc .fileic{width:30px;height:30px}
+.docpage{background:#fff;border:1px solid var(--line);box-shadow:var(--sh);padding:28px 32px;border-radius:4px;min-height:260px}
+.docpage h3{font-size:18px;margin-bottom:4px}
+.docpage .sk{height:8px;border-radius:4px;background:#ECEFF3;margin:9px 0}
+.docpage ul{margin:10px 0 10px 18px;padding:0;color:var(--ink2);font-size:13px}
+.docpage table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+.docpage th,.docpage td{border:1px solid var(--line);padding:5px 8px;text-align:left}
+.docpage th{background:#F3F6FA}
+.player{height:200px;background:linear-gradient(135deg,#0C3B5E,#0F6CBD);border-radius:6px;display:grid;place-items:center;color:#fff}
+
+/* Workflow */
+.flow{list-style:none;display:flex;margin:0;padding:0;gap:6px;flex-wrap:wrap}
+.flow li{flex:1;min-width:110px;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;background:var(--gray-l);color:var(--muted);font-weight:600;font-size:13px}
+.flow li span{width:22px;height:22px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:12px;flex:none}
+.flow li.done{background:var(--green-l);color:#0B5A0B}.flow li.done span{background:var(--green);color:#fff}
+.flow li.cur{background:var(--brand);color:#fff}.flow li.cur span{color:var(--brand)}
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.pipe button{background:#fff;border:1px solid var(--line2);box-shadow:var(--sh);border-radius:var(--r2);padding:12px 14px;text-align:left;border-top:3px solid #A9B4C0}
+.pipe button.on{outline:2px solid var(--brand)}
+.pipe b{display:block;font-size:24px;font-weight:600}.pipe span{color:var(--muted);font-size:12.5px}
+.pipe button:nth-child(2){border-top-color:#C19C00}.pipe button:nth-child(3){border-top-color:var(--teal)}.pipe button:nth-child(4){border-top-color:var(--brand)}
+
+/* Cycle strip */
+.cycle{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;margin-bottom:16px;background:#fff;border-radius:var(--r2);box-shadow:var(--sh);border:1px solid var(--line2);overflow:hidden}
+.cycle a{padding:12px 14px 12px 22px;position:relative;color:var(--ink);border-right:1px solid var(--line2);clip-path:none}
+.cycle a:last-child{border-right:0}
+.cycle a:hover{background:var(--brand-ll)}
+.cycle a::after{content:"›";position:absolute;right:6px;top:50%;transform:translateY(-50%);color:#A9B4C0;font-size:20px}
+.cycle a:last-child::after{display:none}
+.cycle i{font-style:normal;font-size:11px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:.05em}
+.cycle b{display:block;font-size:18px;font-weight:600;margin:2px 0}
+.cycle span{font-size:12px;color:var(--muted)}
+
+/* Charts */
+.sbars{display:flex;flex-direction:column;gap:12px}
+.sb-row{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:12px;align-items:center;font-size:13px}
+.sb-l{display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-track{height:20px;background:#F3F4F6;border-radius:4px;overflow:hidden}
+.sb-fill{display:flex;height:100%}
+.sb-fill i{display:block;min-width:3px;border-right:2px solid #fff}
+.sb-fill i:last-child{border-right:0}
+.sb-v{color:var(--ink2);font-size:12.5px;min-width:90px;text-align:right;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:12px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.donut-w{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.donut{width:150px;height:150px;flex:none}
+.d-big{font-size:26px;font-weight:600;text-anchor:middle;fill:#242424}
+.d-sub{font-size:9px;text-anchor:middle;fill:#616161}
+.cols{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:8px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;font-size:11.5px;color:var(--muted)}
+.col .bar{width:100%;max-width:42px;background:var(--brand);border-radius:4px 4px 0 0;min-height:2px}
+.col.cur .bar{background:#8FBDE8}
+.col b{color:var(--ink);font-size:12px}
+.attn{display:flex;flex-direction:column;gap:8px}
+.attn a{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line2);border-radius:var(--r2);color:var(--ink)}
+.attn a:hover{background:var(--brand-ll)}
+.attn .ai{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;background:var(--amber-l);color:var(--amber);flex:none}
+.attn .ai.b{background:var(--brand-l);color:var(--brand)}
+.attn b{display:block;font-weight:600}.attn small{color:var(--muted)}
+
+/* Analysis */
+.an-row{display:grid;grid-template-columns:minmax(150px,1.1fr) minmax(0,1.6fr) 64px 150px;gap:14px;align-items:center;width:100%;text-align:left;background:#fff;border:0;border-bottom:1px solid var(--line2);padding:11px 14px}
+.an-row:hover{background:var(--brand-ll)}
+.an-row.sel{background:var(--brand-l);box-shadow:inset 3px 0 0 var(--brand)}
+.an-name b{display:block;font-weight:600}.an-name small{color:var(--muted);font-size:12px}
+.an-bars{display:flex;flex-direction:column;gap:4px}
+.bar-l{height:10px;border-radius:2px;position:relative;min-width:2px}
+.bar-l.ref{background:#B7C4D1}.bar-l.real{background:var(--brand)}
+.bar-l.real.flag{background:#C19C00}
+.bar-l span{position:absolute;left:calc(100% + 6px);top:-4px;font-size:11px;color:var(--ink2);white-space:nowrap}
+.an-num{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:10px 0 6px}
+.stat{background:#FAFAFA;border-radius:var(--r);padding:8px 10px}
+.stat small{color:var(--muted);display:block;font-size:11.5px}.stat b{font-size:18px;font-weight:600}
+.plot{width:100%;height:auto;display:block}
+.plot text{font-size:10.5px;fill:#616161}
+.causes{display:flex;flex-direction:column;gap:6px}
+.cause{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line2);border-radius:var(--r);font-size:13px}
+.cause.hint{border-color:#F2DDA6;background:#FFFBF0}
+.cause b{display:block;font-weight:600}.cause small{color:var(--muted)}
+
+/* Board */
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:start}
+.bcol{background:#EEF0F3;border-radius:var(--r2);padding:10px}
+.bcol h3{font-size:13px;font-weight:600;display:flex;justify-content:space-between;margin:2px 4px 10px}
+.kcard{background:#fff;border-radius:var(--r2);box-shadow:var(--sh);padding:12px;margin-bottom:10px;border-left:3px solid var(--brand)}
+.kcard h4{font-size:13.5px;font-weight:600;margin-bottom:4px}
+.kcard p{font-size:12.5px;color:var(--ink2);margin-bottom:6px}
+.kcard .meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-top:8px;gap:6px;flex-wrap:wrap}
+.kcard .resp{background:var(--brand-ll);border-radius:6px;padding:6px 8px;font-size:12px;margin-top:6px;color:var(--brand-dd)}
+.bcol.c2 .kcard{border-left-color:#C19C00}.bcol.c3 .kcard{border-left-color:var(--green)}.bcol.c4 .kcard{border-left-color:#A9B4C0}
+.idea{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line2);font-size:13px}
+.idea:last-child{border-bottom:0}.idea .ic{color:var(--teal);margin-top:2px}
+
+/* Timer */
+.tm{text-align:center;padding:6px 0 4px}
+.tm-name{font-weight:600;font-size:15px;color:var(--ink2)}
+.tm-clock{font-size:56px;font-weight:600;letter-spacing:.02em;font-variant-numeric:tabular-nums;margin:6px 0 2px;color:var(--brand-dd)}
+.tm-bar{height:6px;background:#E7ECF1;border-radius:3px;overflow:hidden;max-width:380px;margin:10px auto 6px}
+.tm-bar i{display:block;height:100%;background:var(--brand);border-radius:3px;transition:width .3s}
+.tm-ref{font-size:12.5px;color:var(--muted)}
+.tm-btns{display:flex;gap:10px;justify-content:center;margin:16px 0 4px}
+.tm-btns .btn{padding:9px 20px;font-size:14px}
+
+/* Misc */
+.toasts{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:100;align-items:center;pointer-events:none}
+.toast{background:#323232;color:#fff;padding:10px 16px;border-radius:8px;box-shadow:var(--sh2);font-size:13.5px;animation:pop .2s ease-out;max-width:90vw}
+@keyframes pop{from{transform:translateY(10px);opacity:0}}
+.sumbar{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin-bottom:10px}
+.hr{height:1px;background:var(--line2);margin:14px 0}
+details.dt summary{cursor:pointer;font-weight:600;color:var(--brand-d);margin:8px 0}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.how div{background:var(--brand-ll);border-radius:var(--r2);padding:12px;font-size:13px}
+.how b{display:block;margin-bottom:2px;color:var(--brand-dd)}
+ol.roteiro{margin:6px 0 0 18px;padding:0;font-size:13.5px;display:flex;flex-direction:column;gap:3px}
+
+/* Responsivo */
+@media (max-width:1100px){
+  .g-ms,.g-sm,.g2{grid-template-columns:1fr}
+  .board{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cycle{grid-template-columns:repeat(3,1fr)}
+  .cycle a{border-bottom:1px solid var(--line2)}
+  .top-search{display:none}
+}
+@media (max-width:900px){
+  .burger{display:inline-grid}
+  .sidebar{position:fixed;top:48px;bottom:0;left:0;z-index:35;transform:translateX(-100%);transition:transform .2s;box-shadow:var(--sh2)}
+  body.nav-open .sidebar{transform:none}
+  .main{padding:18px 14px 48px}
+  .pill,.brand small,.who div{display:none}
+  .act{grid-template-columns:1fr}
+  .act-btns{justify-content:flex-start;max-width:none}
+  .pipe{grid-template-columns:repeat(2,1fr)}
+  .an-row{grid-template-columns:1fr 60px;}
+  .an-bars{grid-column:1/-1;order:3}
+  .row2,.row3,.how{grid-template-columns:1fr}
+  .sb-row{grid-template-columns:110px minmax(0,1fr)}
+  .sb-v{grid-column:1/-1;text-align:left}
+  .kv{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .board{grid-template-columns:1fr}
+  .cycle{grid-template-columns:repeat(2,1fr)}
+  .tm-clock{font-size:44px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Complementos */
+.sec-h{font-size:15px;font-weight:600;margin:0 0 10px}
+.cal-times{padding-top:0}
+.cal-times div:first-child{transform:none}
+.step-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
+.step-row .n{width:24px;height:24px;border-radius:50%;background:var(--brand-l);color:var(--brand-d);display:grid;place-items:center;font-weight:600;font-size:12px;flex:none;margin-top:6px}
+.step-row .grow{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.step-row .row-acts{flex:none;flex-wrap:nowrap}
+.icon-btn:hover{background:rgba(0,0,0,.07)}
+.topbar .icon-btn:hover{background:rgba(255,255,255,.15)}
+
+.plot-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:6px 0 2px}.plot-leg i{display:inline-block;width:16px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+
+.kcard .badge{white-space:normal;max-width:100%}
+.topbar{overflow:hidden}.top-r{min-width:0}
+@media (max-width:900px){.cal-in{min-width:640px}}
+@media (max-width:640px){
+  .tpill .n{display:none}.seg button{padding:5px 8px;font-size:12px}.top-r{gap:6px}.topbar{gap:8px;padding:0 8px}
+}
+@media (max-width:480px){.brand-name{display:none}}
+
+</style>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar" id="topbar"></header>
+    <div class="shell">
+      <nav class="sidebar" id="sidebar" aria-label="Navegação principal"></nav>
+      <main class="main" id="main" tabindex="-1"></main>
+    </div>
+  </div>
+  <div id="scrim" class="scrim" data-act="closeDrawer" hidden></div>
+  <aside id="drawer" class="drawer" hidden aria-label="Trabalho Padrão"></aside>
+  <div id="modal-root" class="modal-root" hidden></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <noscript>Este protótipo precisa de JavaScript para funcionar.</noscript>
+  <script>
+'use strict';
+/* Trabalho Padrão — dados fictícios de demonstração.
+   Nenhuma informação real: pessoas, tempos e registros são simulados. */
+
+const D = {
+  pad: n => String(n).padStart(2, '0'),
+  iso(d) { return d.getFullYear() + '-' + D.pad(d.getMonth() + 1) + '-' + D.pad(d.getDate()); },
+  parse(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); },
+  add(s, n) { const d = D.parse(s); d.setDate(d.getDate() + n); return D.iso(d); },
+  today() {
+    const d = new Date();
+    if (d.getDay() === 6) d.setDate(d.getDate() + 2);
+    if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+    return D.iso(d);
+  },
+  monday(s) { const d = D.parse(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return D.iso(d); }
+};
+
+const PEOPLE = {
+  u1: { id: 'u1', name: 'Ana Souza', short: 'Ana', role: 'Analista de Suporte', color: '#0F6CBD' },
+  u2: { id: 'u2', name: 'Bruno Lima', short: 'Bruno', role: 'Analista de Infraestrutura', color: '#0E7C86' },
+  u3: { id: 'u3', name: 'Camila Rocha', short: 'Camila', role: 'Analista de Sistemas', color: '#4F52B2' },
+  u4: { id: 'u4', name: 'Diego Alves', short: 'Diego', role: 'Analista de Segurança', color: '#5B7083' },
+  u5: { id: 'u5', name: 'Fernanda Costa', short: 'Fernanda', role: 'Analista de Suporte', color: '#115EA3' },
+  m1: { id: 'm1', name: 'Carlos Mendes', short: 'Carlos', role: 'Gestor de TI', color: '#0C3B5E' }
+};
+const TEAM = ['u1', 'u2', 'u3', 'u4', 'u5'];
+
+const CATS = ['Suporte e Atendimento', 'Gestão de Demandas', 'Infraestrutura', 'Segurança e Acessos', 'Controles e Documentação'];
+const CAT_COLOR = {
+  'Suporte e Atendimento': '#0F6CBD', 'Gestão de Demandas': '#0E7C86', 'Infraestrutura': '#4F52B2',
+  'Segurança e Acessos': '#8764B8', 'Controles e Documentação': '#B8860B', 'Sem padrão': '#A9B4C0'
+};
+const FREQS = ['Diária', 'Semanal', 'Mensal', 'Pontual'];
+const WORKFLOW = ['Rascunho', 'Em revisão', 'Aprovado', 'Publicado'];
+const SUGG_STATUS = ['Nova', 'Em análise', 'Implementada', 'Não aprovada'];
+const EXEC_STATUS = ['Concluída', 'Parcial', 'Interrompida'];
+
+/* ---------- Regras de recorrência (compartilhadas) ---------- */
+function monthlyHit(a, d) {
+  for (const off of [0, -1]) {
+    const nom = new Date(d.getFullYear(), d.getMonth() + off, a.dom);
+    if (nom.getDate() !== a.dom) continue;
+    const sh = new Date(nom);
+    if (nom.getDay() === 6) sh.setDate(sh.getDate() + 2);
+    else if (nom.getDay() === 0) sh.setDate(sh.getDate() + 1);
+    if (D.iso(sh) === D.iso(d)) return true;
+  }
+  return false;
+}
+function occursOn(a, date) {
+  if (a.ended || date < a.start) return false;
+  const d = D.parse(date), wd = d.getDay();
+  if (wd === 0 || wd === 6) return false;
+  switch (a.frequency) {
+    case 'Diária': return true;
+    case 'Semanal': return wd === a.wd;
+    case 'Mensal': return monthlyHit(a, d);
+    case 'Pontual': return date === a.start;
+  }
+  return false;
+}
+
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function buildSeed() {
+  const today = D.today(), mon = D.monday(today);
+  const ago = n => D.add(today, -n);
+  const H = rows => rows.map(([n, who, note]) => ({ date: ago(n), who, note }));
+  const dayOf = off => D.parse(D.add(mon, off)).getDate();
+
+  const procedures = [
+    {
+      id: 'proc1', name: 'Verificação de chamados', category: 'Suporte e Atendimento', frequency: 'Diária', refMin: 30,
+      description: 'Consulta diária da fila de chamados de TI para garantir que nenhuma solicitação fique sem acompanhamento.',
+      objective: 'Garantir que os chamados sejam priorizados, acompanhados e atualizados dentro dos prazos combinados com os usuários.',
+      owner: 'u5', capable: ['u1', 'u5', 'u2'], status: 'Publicado', version: '2.1', updated: ago(38),
+      steps: [
+        { t: 'Acessar o sistema de chamados', d: 'Entre no portal de chamados com seu usuário corporativo e abra a fila "Equipe de TI".' },
+        { t: 'Consultar os chamados pendentes', d: 'Filtre por status "Aberto" e "Em atendimento" e ordene pela data de abertura.' },
+        { t: 'Verificar prioridade e prazo', d: 'Confira a prioridade de cada chamado e o prazo previsto na matriz de prazos.' },
+        { t: 'Identificar demandas que precisam de acompanhamento', d: 'Sinalize chamados próximos do prazo, aguardando terceiros ou sem resposta há mais de 24 horas.' },
+        { t: 'Atualizar as informações necessárias', d: 'Registre o andamento, ajuste a prioridade quando necessário e avise o solicitante.' }
+      ],
+      systems: ['Sistema de chamados (ITSM)', 'Painel de prazos'],
+      docs: [{ n: 'Política de priorização de chamados', t: 'PDF', s: 'Versão 3.0 · 6 páginas' }, { n: 'Matriz de prazos por prioridade', t: 'XLSX', s: 'Revisada trimestralmente' }],
+      materials: [{ n: 'Guia rápido de classificação de chamados', t: 'Guia', s: '2 páginas' }, { n: 'Modelos de resposta ao usuário', t: 'Modelo', s: '8 modelos' }],
+      history: H([[38, 'u5', 'Revisão das etapas 3 e 4 e inclusão do critério de prazo (v2.1)'], [140, 'u5', 'Inclusão dos modelos de resposta ao usuário (v2.0)'], [300, 'm1', 'Versão inicial publicada (v1.0)']])
+    },
+    {
+      id: 'proc2', name: 'Atualização de controles', category: 'Controles e Documentação', frequency: 'Semanal', refMin: 45,
+      description: 'Atualização semanal da planilha mestre de controles da área de TI.',
+      objective: 'Manter os controles da equipe atualizados e disponíveis para consulta e auditoria.',
+      owner: 'u3', capable: ['u3', 'u1', 'u4', 'u5'], status: 'Publicado', version: '1.4', updated: ago(62),
+      steps: [
+        { t: 'Abrir a planilha mestre de controles', d: 'Acesse a versão mais recente na biblioteca de documentos da equipe.' },
+        { t: 'Atualizar o status dos itens alterados na semana', d: 'Revise os itens com mudança e atualize status, responsável e data.' },
+        { t: 'Conferir pendências com os responsáveis', d: 'Entre em contato com quem tem itens em aberto há mais de uma semana.' },
+        { t: 'Salvar uma cópia de versão', d: 'Registre a data da atualização e salve uma cópia no histórico.' }
+      ],
+      systems: ['Planilha de controles da TI', 'Biblioteca de documentos da equipe'],
+      docs: [{ n: 'Planilha mestre de controles', t: 'XLSX', s: 'Atualizada semanalmente' }, { n: 'Guia de preenchimento dos controles', t: 'PDF', s: '4 páginas' }],
+      materials: [{ n: 'Checklist de conferência semanal', t: 'Checklist', s: '12 itens' }],
+      history: H([[62, 'u3', 'Inclusão da etapa de cópia de versão (v1.4)'], [210, 'u3', 'Ajuste na ordem das etapas (v1.2)'], [400, 'm1', 'Versão inicial publicada (v1.0)']])
+    },
+    {
+      id: 'proc3', name: 'Acompanhamento de demandas', category: 'Gestão de Demandas', frequency: 'Diária', refMin: 25,
+      description: 'Acompanhamento diário do quadro de demandas em andamento na equipe.',
+      objective: 'Dar visibilidade ao andamento das demandas e antecipar riscos de atraso.',
+      owner: 'u3', capable: ['u3', 'u1', 'u2', 'u5'], status: 'Publicado', version: '1.2', updated: ago(21),
+      steps: [
+        { t: 'Abrir o quadro de demandas', d: 'Acesse o quadro da equipe e selecione a visão "Em andamento".' },
+        { t: 'Revisar demandas e prazos', d: 'Compare o prazo combinado com o estágio atual de cada demanda.' },
+        { t: 'Contatar responsáveis por demandas paradas', d: 'Pergunte o que está bloqueando e registre o combinado no cartão.' },
+        { t: 'Atualizar o status no quadro', d: 'Mova os cartões e atualize as datas previstas.' },
+        { t: 'Sinalizar riscos ao gestor', d: 'Use o modelo de relato de risco quando houver possibilidade de atraso.' }
+      ],
+      systems: ['Quadro de demandas (Kanban)', 'Chat da equipe'],
+      docs: [{ n: 'Regras de priorização de demandas', t: 'PDF', s: 'Versão 1.1 · 3 páginas' }],
+      materials: [{ n: 'Modelo de relato de risco', t: 'Modelo', s: '1 página' }],
+      history: H([[21, 'u3', 'Inclusão da etapa de sinalização de riscos (v1.2)'], [150, 'u3', 'Versão inicial publicada (v1.0)']])
+    },
+    {
+      id: 'proc4', name: 'Revisão de acessos', category: 'Segurança e Acessos', frequency: 'Semanal', refMin: 60,
+      description: 'Revisão periódica dos acessos concedidos a sistemas e pastas da empresa.',
+      objective: 'Assegurar que apenas as pessoas autorizadas mantenham acesso aos sistemas.',
+      owner: 'u4', capable: ['u4', 'u2'], status: 'Publicado', version: '2.1', updated: ago(95),
+      steps: [
+        { t: 'Extrair a lista de usuários e perfis ativos', d: 'Gere o relatório de usuários no sistema de gestão de acessos.' },
+        { t: 'Comparar com a lista de colaboradores ativos', d: 'Cruze os nomes com a lista mais recente enviada pelo RH.' },
+        { t: 'Identificar acessos excedentes ou de desligados', d: 'Marque contas sem correspondência ou com perfil acima do necessário.' },
+        { t: 'Solicitar validação dos gestores das áreas', d: 'Envie a lista de exceções para confirmação.' },
+        { t: 'Ajustar ou remover os acessos aprovados', d: 'Execute as alterações e registre o número do chamado.' },
+        { t: 'Arquivar o relatório da revisão', d: 'Salve o relatório na pasta de evidências.' }
+      ],
+      systems: ['Diretório de usuários', 'Sistema de gestão de acessos'],
+      docs: [{ n: 'Política de controle de acessos', t: 'PDF', s: 'Versão 2.0 · 9 páginas' }, { n: 'Modelo de relatório de revisão', t: 'DOCX', s: '2 páginas' }],
+      materials: [{ n: 'Checklist de revisão de acessos', t: 'Checklist', s: '10 itens' }],
+      history: H([[95, 'u4', 'Etapa 1 atualizada após relatório agendado (v2.1)'], [260, 'u4', 'Inclusão da validação pelos gestores (v2.0)'], [420, 'm1', 'Versão inicial publicada (v1.0)']])
+    },
+    {
+      id: 'proc5', name: 'Atualização de documentação', category: 'Controles e Documentação', frequency: 'Semanal', refMin: 40,
+      description: 'Atualização da documentação técnica após mudanças no ambiente.',
+      objective: 'Garantir que procedimentos, diagramas e manuais reflitam o ambiente atual.',
+      owner: 'u3', capable: ['u3', 'u2', 'u1'], status: 'Publicado', version: '1.1', updated: ago(214),
+      steps: [
+        { t: 'Listar documentos impactados pelas mudanças', d: 'Consulte o registro de mudanças da semana.' },
+        { t: 'Atualizar procedimentos e diagramas', d: 'Edite o conteúdo e registre o resumo da alteração.' },
+        { t: 'Enviar para revisão do responsável', d: 'Solicite a conferência do responsável pelo documento.' },
+        { t: 'Publicar a nova versão na biblioteca', d: 'Substitua a versão anterior e avise a equipe.' }
+      ],
+      systems: ['Biblioteca de documentos da equipe', 'Editor de diagramas'],
+      docs: [{ n: 'Padrão de documentação técnica', t: 'PDF', s: 'Versão 1.0 · 5 páginas' }, { n: 'Modelo de procedimento operacional', t: 'DOCX', s: '3 páginas' }],
+      materials: [{ n: 'Guia de estilo da documentação', t: 'Guia', s: '2 páginas' }],
+      history: H([[214, 'u3', 'Ajuste de redação nas etapas 2 e 3 (v1.1)'], [380, 'm1', 'Versão inicial publicada (v1.0)']])
+    },
+    {
+      id: 'proc6', name: 'Verificação de rotinas operacionais', category: 'Infraestrutura', frequency: 'Diária', refMin: 20,
+      description: 'Conferência diária de backups, monitoramento e rotinas automáticas do ambiente.',
+      objective: 'Detectar cedo falhas em rotinas que sustentam a operação da empresa.',
+      owner: 'u2', capable: ['u2', 'u4', 'u1'], status: 'Publicado', version: '1.3', updated: ago(14),
+      steps: [
+        { t: 'Abrir o painel de monitoramento', d: 'Acesse o painel e selecione a visão "Ambiente de produção".' },
+        { t: 'Conferir o resultado dos backups da noite', d: 'Verifique no console de backup se todas as tarefas terminaram com sucesso.' },
+        { t: 'Verificar alertas de servidores e links', d: 'Analise os alertas abertos e a disponibilidade dos links de internet.' },
+        { t: 'Registrar ocorrências no diário de operação', d: 'Anote horário, sistema afetado e ação tomada.' },
+        { t: 'Abrir chamado quando houver falha', d: 'Classifique a prioridade e acione o responsável.' }
+      ],
+      systems: ['Painel de monitoramento', 'Console de backup'],
+      docs: [{ n: 'Diário de operação', t: 'XLSX', s: 'Registro diário' }, { n: 'Plano de resposta a falhas', t: 'PDF', s: 'Versão 1.2 · 7 páginas' }],
+      materials: [{ n: 'Lista de verificação diária', t: 'Checklist', s: '8 itens' }],
+      history: H([[14, 'u2', 'Inclusão da conferência dos links de internet (v1.3)'], [120, 'u2', 'Versão inicial publicada (v1.0)']])
+    },
+    {
+      id: 'proc7', name: 'Inventário de equipamentos', category: 'Infraestrutura', frequency: 'Mensal', refMin: 90,
+      description: 'Conferência mensal dos equipamentos de TI e sua localização.',
+      objective: 'Manter o inventário confiável para planejamento de compras e manutenção.',
+      owner: 'u2', capable: ['u2', 'u5'], status: 'Publicado', version: '1.2', updated: ago(70),
+      steps: [
+        { t: 'Exportar a lista do sistema de ativos', d: 'Gere o relatório de equipamentos por localização.' },
+        { t: 'Conferir fisicamente por amostragem', d: 'Verifique ao menos 20% dos itens, priorizando os de maior valor.' },
+        { t: 'Atualizar localização e responsável', d: 'Corrija divergências encontradas na conferência.' },
+        { t: 'Registrar baixas e novas aquisições', d: 'Anexe a documentação correspondente.' },
+        { t: 'Salvar o relatório mensal', d: 'Arquive na pasta de inventário do mês.' }
+      ],
+      systems: ['Sistema de ativos', 'Planilha de inventário'],
+      docs: [{ n: 'Modelo de relatório de inventário', t: 'XLSX', s: 'Uso mensal' }],
+      materials: [{ n: 'Roteiro de conferência por amostragem', t: 'Guia', s: '1 página' }],
+      history: H([[70, 'u2', 'Definição do percentual de amostragem (v1.2)'], [240, 'm1', 'Versão inicial publicada (v1.0)']])
+    },
+    {
+      id: 'proc8', name: 'Gestão de licenças de software', category: 'Controles e Documentação', frequency: 'Mensal', refMin: 50,
+      description: 'Acompanhamento do uso das licenças de software contratadas.',
+      objective: 'Evitar licenças sem uso e antecipar renovações.',
+      owner: 'u4', capable: ['u4', 'u3'], status: 'Publicado', version: '1.0', updated: ago(241),
+      steps: [
+        { t: 'Exportar o uso de licenças por sistema', d: 'Gere o relatório de licenças atribuídas e ativas.' },
+        { t: 'Comparar com as licenças contratadas', d: 'Confira quantidades e datas de vigência no controle de contratos.' },
+        { t: 'Identificar licenças sem uso', d: 'Liste contas sem acesso nos últimos 60 dias.' },
+        { t: 'Informar o gestor sobre renovações próximas', d: 'Envie um resumo com os contratos que vencem em até 90 dias.' }
+      ],
+      systems: ['Portal de licenças', 'Controle de contratos'],
+      docs: [{ n: 'Controle de licenças', t: 'XLSX', s: 'Atualizado mensalmente' }],
+      materials: [{ n: 'Modelo de resumo para o gestor', t: 'Modelo', s: '1 página' }],
+      history: H([[241, 'm1', 'Versão inicial publicada (v1.0)']])
+    },
+    {
+      id: 'proc9', name: 'Criação de contas para novos colaboradores', category: 'Segurança e Acessos', frequency: 'Semanal', refMin: 35,
+      description: 'Criação de contas e permissões iniciais para quem está ingressando na empresa.',
+      objective: 'Garantir que novos colaboradores comecem com os acessos corretos.',
+      owner: 'u4', capable: ['u4'], status: 'Em revisão', version: '0.4', updated: ago(5),
+      steps: [
+        { t: 'Receber a solicitação do RH', d: 'Confirme nome, área e data de início.' },
+        { t: 'Criar a conta e o e-mail corporativo', d: 'Siga o padrão de nomenclatura vigente.' },
+        { t: 'Atribuir os perfis de acesso da área', d: 'Use o perfil-base do cargo.' },
+        { t: 'Enviar as orientações de primeiro acesso', d: 'Use o modelo de mensagem aprovado.' }
+      ],
+      systems: ['Diretório de usuários', 'Sistema de gestão de acessos'],
+      docs: [{ n: 'Padrão de nomenclatura de contas', t: 'PDF', s: 'Rascunho' }],
+      materials: [],
+      history: H([[5, 'u4', 'Enviado para revisão do gestor'], [12, 'u4', 'Rascunho criado']])
+    },
+    {
+      id: 'proc10', name: 'Preparação de equipamentos para novos colaboradores', category: 'Infraestrutura', frequency: 'Pontual', refMin: 60,
+      description: 'Configuração de notebook e periféricos antes da chegada do novo colaborador.',
+      objective: 'Entregar o equipamento pronto para uso no primeiro dia.',
+      owner: 'u2', capable: ['u2'], status: 'Rascunho', version: '0.1', updated: ago(2),
+      steps: [
+        { t: 'Separar o equipamento disponível', d: 'Confira o estoque e a etiqueta de patrimônio.' },
+        { t: 'Instalar a imagem padrão', d: 'Use a imagem corporativa mais recente.' },
+        { t: 'Registrar no inventário', d: 'Vincule o equipamento ao novo colaborador.' }
+      ],
+      systems: ['Sistema de ativos'], docs: [], materials: [],
+      history: H([[2, 'u2', 'Rascunho criado']])
+    },
+    {
+      id: 'proc11', name: 'Registro de incidentes de segurança', category: 'Segurança e Acessos', frequency: 'Pontual', refMin: 40,
+      description: 'Registro padronizado de incidentes de segurança da informação.',
+      objective: 'Garantir rastreabilidade e resposta consistente aos incidentes.',
+      owner: 'u4', capable: ['u4', 'u2'], status: 'Aprovado', version: '0.9', updated: ago(3),
+      steps: [
+        { t: 'Identificar e classificar o incidente', d: 'Use a tabela de severidade.' },
+        { t: 'Registrar as evidências', d: 'Anexe capturas de tela e logs relevantes.' },
+        { t: 'Acionar os responsáveis', d: 'Siga a matriz de comunicação.' },
+        { t: 'Acompanhar até o encerramento', d: 'Registre as ações corretivas e preventivas.' }
+      ],
+      systems: ['Sistema de chamados (ITSM)'],
+      docs: [{ n: 'Tabela de severidade de incidentes', t: 'PDF', s: 'Rascunho' }], materials: [],
+      history: H([[3, 'm1', 'Aprovado para publicação'], [9, 'u4', 'Enviado para revisão do gestor'], [20, 'u4', 'Rascunho criado']])
+    }
+  ];
+
+  const DESC = {
+    'Triagem de e-mails do suporte compartilhado': 'Classificar e encaminhar os e-mails recebidos na caixa de suporte compartilhada.',
+    'Verificação de chamados': 'Consultar a fila de chamados e garantir o acompanhamento dentro dos prazos.',
+    'Acompanhamento de demandas': 'Acompanhar o quadro de demandas em andamento e sinalizar riscos.',
+    'Atualização de controles': 'Atualizar a planilha mestre de controles da TI.',
+    'Atualização de documentação': 'Atualizar procedimentos e diagramas após mudanças no ambiente.',
+    'Organização de arquivos da pasta compartilhada': 'Reorganizar e arquivar documentos da pasta compartilhada da equipe.',
+    'Verificação de rotinas operacionais': 'Conferir backups, monitoramento e rotinas automáticas.',
+    'Inventário de equipamentos': 'Conferir equipamentos de TI e atualizar o inventário.',
+    'Teste de restauração de backup': 'Restaurar uma amostra de backup para confirmar que os dados são recuperáveis.',
+    'Atualização da planilha de ativos de rede': 'Atualizar a planilha com switches, roteadores e pontos de acesso.',
+    'Revisão de acessos': 'Revisar acessos concedidos a sistemas e pastas.',
+    'Gestão de licenças de software': 'Acompanhar uso e vigência das licenças de software.',
+    'Conferência de certificados digitais': 'Conferir validade dos certificados digitais em uso.'
+  };
+
+  let k = 0;
+  const A = (name, userId, procId, refMin, frequency, time, x = {}) => ({
+    id: 'a' + (++k), name, description: DESC[name], userId, procId, refMin, frequency, time,
+    start: frequency === 'Mensal' ? ago(150) : ago(80), wd: x.wd || null, dom: x.dom || null, moved: {}, ended: false
+  });
+  const activities = [
+    A('Triagem de e-mails do suporte compartilhado', 'u1', null, 20, 'Diária', '08:00'),
+    A('Verificação de chamados', 'u1', 'proc1', 30, 'Diária', '08:30'),
+    A('Acompanhamento de demandas', 'u1', 'proc3', 25, 'Diária', '10:00'),
+    A('Atualização de controles', 'u1', 'proc2', 45, 'Semanal', '14:00', { wd: 2 }),
+    A('Verificação de rotinas operacionais', 'u1', 'proc6', 20, 'Semanal', '11:00', { wd: 3 }),
+    A('Atualização de documentação', 'u1', 'proc5', 40, 'Semanal', '14:00', { wd: 4 }),
+    A('Organização de arquivos da pasta compartilhada', 'u1', null, 30, 'Semanal', '16:00', { wd: 5 }),
+
+    A('Verificação de rotinas operacionais', 'u2', 'proc6', 20, 'Diária', '08:00'),
+    A('Verificação de chamados', 'u2', 'proc1', 30, 'Diária', '10:30'),
+    A('Atualização da planilha de ativos de rede', 'u2', null, 30, 'Semanal', '15:00', { wd: 1 }),
+    A('Revisão de acessos', 'u2', 'proc4', 60, 'Semanal', '16:00', { wd: 3 }),
+    A('Teste de restauração de backup', 'u2', null, 45, 'Semanal', '09:00', { wd: 4 }),
+    A('Inventário de equipamentos', 'u2', 'proc7', 90, 'Mensal', '14:00', { dom: dayOf(2) }),
+
+    A('Acompanhamento de demandas', 'u3', 'proc3', 25, 'Diária', '09:00'),
+    A('Atualização de controles', 'u3', 'proc2', 45, 'Semanal', '10:00', { wd: 1 }),
+    A('Organização de arquivos da pasta compartilhada', 'u3', null, 30, 'Semanal', '16:00', { wd: 2 }),
+    A('Atualização de documentação', 'u3', 'proc5', 40, 'Semanal', '14:00', { wd: 3 }),
+
+    A('Conferência de certificados digitais', 'u4', null, 30, 'Semanal', '11:00', { wd: 1 }),
+    A('Atualização de controles', 'u4', 'proc2', 45, 'Semanal', '15:00', { wd: 3 }),
+    A('Revisão de acessos', 'u4', 'proc4', 60, 'Semanal', '09:30', { wd: 4 }),
+    A('Verificação de rotinas operacionais', 'u4', 'proc6', 20, 'Semanal', '08:30', { wd: 5 }),
+    A('Gestão de licenças de software', 'u4', 'proc8', 50, 'Mensal', '11:00', { dom: dayOf(1) }),
+
+    A('Verificação de chamados', 'u5', 'proc1', 30, 'Diária', '09:00'),
+    A('Triagem de e-mails do suporte compartilhado', 'u5', null, 20, 'Diária', '13:30'),
+    A('Atualização de controles', 'u5', 'proc2', 45, 'Semanal', '14:00', { wd: 1 }),
+    A('Acompanhamento de demandas', 'u5', 'proc3', 25, 'Diária', '15:00')
+  ];
+
+  /* Histórico simulado: média e dispersão diferentes por atividade (dados fictícios). */
+  const FACT = {
+    'Triagem de e-mails do suporte compartilhado': [1.35, .18], 'Verificação de chamados': [1.30, .13],
+    'Acompanhamento de demandas': [1.22, .15], 'Atualização de controles': [0.98, .10],
+    'Verificação de rotinas operacionais': [0.86, .12], 'Atualização de documentação': [0.95, .12],
+    'Organização de arquivos da pasta compartilhada': [0.92, .15], 'Teste de restauração de backup': [1.05, .12],
+    'Atualização da planilha de ativos de rede': [0.95, .10], 'Revisão de acessos': [1.30, .20],
+    'Inventário de equipamentos': [1.09, .07], 'Conferência de certificados digitais': [1.12, .12],
+    'Gestão de licenças de software': [1.32, .08]
+  };
+  const NOTES = ['Sistema lento durante a manhã.', 'Aguardando retorno de outra área.', 'Planilha estava desatualizada.', 'Mais itens do que o habitual.', 'Etapa 3 confusa, precisei consultar o responsável.', 'Tudo dentro do esperado.'];
+  const rand = mulberry32(Number(today.replace(/-/g, '')));
+  const gauss = () => (rand() + rand() + rand() + rand() - 2) * 1.732;
+  const executions = [];
+  let ek = 0;
+  const mkExec = (a, d, realMin, status, note) => ({ id: 'e' + (++ek), actId: a.id, date: d, userId: a.userId, name: a.name, procId: a.procId, refMin: a.refMin, realMin, status, note: note || '' });
+  for (const a of activities) {
+    const [f, sd] = FACT[a.name];
+    const from0 = D.add(today, a.frequency === 'Mensal' ? -135 : -56);
+    for (let d = from0 < a.start ? a.start : from0; d < today; d = D.add(d, 1)) {
+      if (!occursOn(a, d) || rand() < 0.06) continue;
+      const r = rand();
+      const status = r < .9 ? 'Concluída' : r < .97 ? 'Parcial' : 'Interrompida';
+      const real = Math.max(3, Math.round(a.refMin * (f + sd * gauss())));
+      executions.push(mkExec(a, d, real, status, rand() < .05 ? NOTES[Math.floor(rand() * NOTES.length)] : ''));
+    }
+  }
+  const first = activities[0];
+  if (occursOn(first, today)) executions.push(mkExec(first, today, 24, 'Concluída', ''));
+
+  const suggestions = [
+    { id: 's1', userId: 'u1', activity: 'Verificação de chamados', date: ago(6), status: 'Em análise', response: '',
+      description: 'A etapa 4 pede para identificar demandas que precisam de acompanhamento, mas não há um critério claro do que conta como "sem resposta".',
+      suggestion: 'Incluir no procedimento o critério de 24 horas sem resposta e um filtro salvo no sistema de chamados.' },
+    { id: 's2', userId: 'u5', activity: 'Acompanhamento de demandas', date: ago(12), status: 'Nova', response: '',
+      description: 'Atualizo o quadro e depois repito a mesma informação no chat da equipe.',
+      suggestion: 'Avaliar uma automação para avisar o chat quando o status de uma demanda mudar.' },
+    { id: 's3', userId: 'u4', activity: 'Revisão de acessos', date: ago(20), status: 'Implementada',
+      response: 'Relatório agendado criado e etapa 1 atualizada na versão 2.1. Obrigado!',
+      description: 'A extração da lista de usuários é manual e consome boa parte do tempo da revisão.',
+      suggestion: 'Criar um relatório agendado de usuários ativos.' },
+    { id: 's4', userId: 'u2', activity: 'Verificação de rotinas operacionais', date: ago(9), status: 'Não aprovada',
+      response: 'As etapas 2 e 3 atendem a um requisito de auditoria e precisam continuar separadas. Vamos incluir uma nota no procedimento explicando o motivo.',
+      description: 'A conferência dos backups repete parte da verificação feita no painel de monitoramento.',
+      suggestion: 'Unificar as etapas 2 e 3.' },
+    { id: 's5', userId: 'u3', activity: 'Atualização de documentação', date: ago(3), status: 'Nova', response: '',
+      description: 'O tempo de referência de 40 minutos parece não considerar a revisão pelo responsável do documento.',
+      suggestion: 'Revisar o tempo de referência e incluir a etapa de revisão no procedimento.' },
+    { id: 's6', userId: 'u1', activity: 'Triagem de e-mails do suporte compartilhado', date: ago(2), status: 'Nova', response: '',
+      description: 'Não existe um padrão para classificar os e-mails; cada pessoa faz de um jeito.',
+      suggestion: 'Documentar um padrão de triagem, com categorias e prazos de resposta.' }
+  ];
+
+  return { v: 1, seedDay: today, seq: 5000, procedures, activities, executions, suggestions, notes: {}, timer: null };
+}
+
+'use strict';
+/* Trabalho Padrão — protótipo funcional.
+   Tudo roda no navegador; os dados ficam no localStorage e são fictícios.
+   Não há integração com Microsoft 365, SharePoint, Power BI ou Power Automate. */
+
+/* ============================== Estado ============================== */
+const KEY = 'tp_state_v1', TODAY = D.today();
+let S, IDX = {};
+function reindex() { IDX = {}; for (const e of S.executions) IDX[e.actId + '@' + e.date] = e; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) { /* sem armazenamento */ } reindex(); }
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.v === 1 && s.seedDay === TODAY) return s; } catch (_) { /* ignora */ }
+  return buildSeed();
+}
+S = load(); save();
+
+const ME = { c: 'u1', g: 'm1' };
+const UI = {
+  p: 'c', page: 'rotina', day: TODAY, mon: D.monday(TODAY), drawer: null, modal: null, an: null, pf: null,
+  f: { procQ: '', procCat: '', gQ: '', gStatus: '', gOwner: '', gOld: false, dUser: '', dAct: '', dPer: 'week', dNo: false,
+       hPer: '30', hQ: '', hLimit: 60, anPer: 'all', melAct: '' }
+};
+
+/* ============================== Utilidades ============================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = p => p + (S.seq++);
+const WD = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const MON = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const fmtDate = s => { const [y, m, d] = s.split('-'); return `${d}/${m}/${y}`; };
+const fmtShort = s => { const d = D.parse(s); return `${WD[d.getDay()]}, ${D.pad(d.getDate())}/${D.pad(d.getMonth() + 1)}`; };
+const fmtMin = m => { if (m == null || m === '') return '—'; m = Math.round(m); if (m < 60) return m + ' min'; const h = Math.floor(m / 60), r = m % 60; return r ? `${h}h ${r}min` : `${h}h`; };
+const num = (x, d = 1) => Number(x).toLocaleString('pt-BR', { maximumFractionDigits: d, minimumFractionDigits: 0 });
+const clock = sec => { sec = Math.max(0, Math.floor(sec)); return `${D.pad(Math.floor(sec / 3600))}:${D.pad(Math.floor(sec % 3600 / 60))}:${D.pad(sec % 60)}`; };
+const daysAgo = s => Math.round((D.parse(TODAY) - D.parse(s)) / 864e5);
+const rel = s => { const n = daysAgo(s); return n <= 0 ? 'hoje' : n === 1 ? 'ontem' : n < 60 ? `há ${n} dias` : `há ${Math.round(n / 30)} meses`; };
+const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const ini = p => p.name.split(' ').map(x => x[0]).slice(0, 2).join('');
+const avatar = (id, size) => { const p = PEOPLE[id]; return `<span class="av" style="background:${p.color};${size ? `width:${size}px;height:${size}px;font-size:${Math.round(size * .4)}px` : ''}" title="${esc(p.name)}">${ini(p)}</span>`; };
+const person = id => `<span class="person">${avatar(id)}${esc(PEOPLE[id].name)}</span>`;
+const badge = (t, k = 'gray', i = '') => `<span class="badge b-${k}">${i}${esc(t)}</span>`;
+
+const ICON = {
+  home: 'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10',
+  book: 'M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3zM5 17a3 3 0 013-3h11M9 8h6',
+  clock: 'M12 21a9 9 0 100-18 9 9 0 000 18zM12 7v5l3 2',
+  bulb: 'M9 18h6M10 21h4M12 3a6 6 0 00-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0012 3z',
+  chart: 'M4 4v16h16M8 16v-4M12 16V8M16 16v-6',
+  users: 'M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3 2.7-5 6-5s6 2 6 5M16 5.3a3 3 0 010 5.4M18 15.2c1.8.7 3 2.2 3 4.8',
+  folder: 'M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z',
+  trend: 'M3 17l6-6 4 4 8-8M15 7h6v6',
+  search: 'M11 18a7 7 0 100-14 7 7 0 000 14zM21 21l-5-5',
+  plus: 'M12 5v14M5 12h14',
+  play: 'M7 5l12 7-12 7z',
+  pause: 'M8 5v14M16 5v14',
+  stop: 'M6 6h12v12H6z',
+  check: 'M5 12l5 5 9-10',
+  file: 'M7 3h7l5 5v13H7zM14 3v5h5',
+  table: 'M4 5h16v14H4zM4 10h16M4 15h16M10 5v14',
+  x: 'M6 6l12 12M18 6L6 18',
+  left: 'M15 5l-7 7 7 7',
+  right: 'M9 5l7 7-7 7',
+  up: 'M5 15l7-7 7 7',
+  down: 'M5 9l7 7 7-7',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13 7l4 4',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
+  note: 'M5 4h14v12l-4 4H5zM15 20v-4h4M8 9h8M8 13h5',
+  info: 'M12 21a9 9 0 100-18 9 9 0 000 18zM12 11v5M12 8h.01',
+  bolt: 'M13 3L5 14h6l-1 7 8-11h-6z',
+  alert: 'M12 4l9 16H3zM12 10v4M12 17h.01',
+  menu: 'M4 7h16M4 12h16M4 17h16',
+  refresh: 'M20 11a8 8 0 10-2.3 5.7M20 4v7h-7',
+  trash: 'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13',
+  clip: 'M9 4h6v3H9zM7 5H5v16h14V5h-2M9 12h6M9 16h4',
+  history: 'M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8M3 3v5h5M12 8v4l3 2',
+  swap: 'M7 7h13l-3-3M17 17H4l3 3'
+};
+const ic = (n, s = 18) => `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICON[n]}"/></svg>`;
+const fileIc = t => ({ PDF: 'file', DOCX: 'file', XLSX: 'table', 'Vídeo': 'play' }[t] || 'clip');
+
+/* ============================== Dados derivados ============================== */
+const proc = id => S.procedures.find(p => p.id === id);
+const act = id => S.activities.find(a => a.id === id);
+const isPub = p => !!p && p.status === 'Publicado';
+const isOld = p => daysAgo(p.updated) > 180;
+const hasStd = a => isPub(a.procId ? proc(a.procId) : null);
+const catOf = a => hasStd(a) ? proc(a.procId).category : 'Sem padrão';
+const byTime = (a, b) => a.time.localeCompare(b.time);
+const distinctNames = () => [...new Set(S.activities.map(a => a.name))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+const ST_KIND = { 'Planejada': 'blue', 'Em andamento': 'teal', 'Concluída': 'green', 'Sem registro': 'gray', 'Parcial': 'amber', 'Interrompida': 'gray' };
+const ST_CLS = { 'Planejada': '', 'Em andamento': 's-run', 'Concluída': 's-done', 'Sem registro': 's-none', 'Parcial': 's-part', 'Interrompida': 's-stop' };
+
+function mk(a, orig, date, time) { return { id: a.id + '@' + orig, a, orig, date, time }; }
+function instancesBetween(from, to, flt) {
+  const out = [];
+  for (const a of S.activities) {
+    if (a.ended || (flt && !flt(a))) continue;
+    for (let d = from; d <= to; d = D.add(d, 1)) if (occursOn(a, d) && !(a.moved && a.moved[d])) out.push(mk(a, d, d, a.time));
+    for (const k in (a.moved || {})) { const m = a.moved[k]; if (m.date >= from && m.date <= to) out.push(mk(a, k, m.date, m.time)); }
+  }
+  return out;
+}
+function getInst(id) {
+  const [aid, orig] = String(id).split('@'); const a = act(aid); if (!a) return null;
+  const m = a.moved && a.moved[orig];
+  return mk(a, orig, m ? m.date : orig, m ? m.time : a.time);
+}
+function instStatus(i) {
+  if (S.timer && S.timer.instId === i.id) return 'Em andamento';
+  const e = IDX[i.id]; if (e) return e.status;
+  return i.date < TODAY ? 'Sem registro' : 'Planejada';
+}
+function daySummary(list) {
+  const st = list.map(instStatus);
+  return { plan: list.length, done: st.filter(s => s === 'Concluída').length, run: st.filter(s => s === 'Em andamento').length, ref: list.reduce((s, i) => s + (i.a.refMin || 0), 0) };
+}
+const elapsedMs = () => S.timer ? S.timer.acc + (S.timer.running ? Date.now() - S.timer.since : 0) : 0;
+
+function analysis(per) {
+  const from = per === '4' ? D.add(TODAY, -28) : per === '8' ? D.add(TODAY, -56) : '0000-00-00';
+  const g = {};
+  for (const e of S.executions) { if (e.status !== 'Concluída' || e.date < from) continue; (g[e.name] = g[e.name] || []).push(e); }
+  return Object.entries(g).map(([name, list]) => {
+    const a = S.activities.find(x => x.name === name);
+    const ref = a ? a.refMin : list[0].refMin;
+    const v = list.map(e => e.realMin), n = v.length, mean = v.reduce((s, x) => s + x, 0) / n;
+    const sd = Math.sqrt(v.reduce((s, x) => s + (x - mean) ** 2, 0) / n);
+    const diff = ref ? (mean - ref) / ref * 100 : null;
+    const p = a && a.procId ? proc(a.procId) : null;
+    list.sort((x, y) => x.date.localeCompare(y.date));
+    return { name, procId: a ? a.procId : null, cat: a ? catOf(a) : 'Sem padrão', n, ref, mean, sd, min: Math.min(...v), max: Math.max(...v), diff,
+      flag: !!(ref && n >= 4 && Math.abs(diff) >= 20), small: n < 4, list, old: !!(p && isOld(p)), std: !!(a && hasStd(a)) };
+  });
+}
+
+/* ============================== Componentes de UI ============================== */
+const head = (eyebrow, title, sub, right = '') => `<div class="phead"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ''}</div><div class="phead-r">${right}</div></div>`;
+const card = (title, body, right = '', cls = '') => `<section class="card ${cls}"><div class="card-h"><h2>${title}</h2>${right}</div><div class="card-b">${body}</div></section>`;
+const empty = (icon, t, p, btn = '') => `<div class="empty">${ic(icon, 34)}<h3>${t}</h3><p>${p}</p>${btn ? `<div style="margin-top:12px">${btn}</div>` : ''}</div>`;
+const flowSteps = status => { const idx = WORKFLOW.indexOf(status); return `<ol class="flow">${WORKFLOW.map((w, i) => `<li class="${i < idx ? 'done' : i === idx ? 'cur' : ''}"><span>${i < idx ? ic('check', 13) : i + 1}</span>${w}</li>`).join('')}</ol>`; };
+
+function stackBars(rows, fmt = v => num(v, 0)) {
+  const max = Math.max(...rows.map(r => r.segs.reduce((s, x) => s + x.v, 0)), 1);
+  return `<div class="sbars">${rows.map(r => {
+    const tot = r.segs.reduce((s, x) => s + x.v, 0);
+    return `<div class="sb-row"><div class="sb-l">${r.label}</div><div class="sb-track"><div class="sb-fill" style="width:${tot / max * 100}%">${r.segs.filter(x => x.v > 0).map(x => `<i style="flex:${x.v};background:${x.c}" title="${esc(x.t)}: ${fmt(x.v)}"></i>`).join('')}</div></div><div class="sb-v">${r.val != null ? r.val : fmt(tot)}</div></div>`;
+  }).join('')}</div>`;
+}
+function donut(parts, big, sub) {
+  const R = 54, C = 2 * Math.PI * R, tot = parts.reduce((s, p) => s + p.v, 0) || 1; let off = 0;
+  return `<svg viewBox="0 0 140 140" class="donut" role="img" aria-label="${esc(big + ' ' + sub)}"><circle cx="70" cy="70" r="${R}" fill="none" stroke="#EEF0F3" stroke-width="18"/>${parts.map(p => {
+    const len = p.v / tot * C; const s = `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${p.c}" stroke-width="18" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"><title>${esc(p.t)}: ${p.v}</title></circle>`; off += len; return s;
+  }).join('')}<text x="70" y="70" class="d-big">${big}</text><text x="70" y="86" class="d-sub">${sub}</text></svg>`;
+}
+function dotPlot(list, ref, mean) {
+  const W = 420, Hh = 210, L = 32, R = 10, T = 10, B = 26;
+  const pts = list.slice(-40), vals = pts.map(e => e.realMin);
+  const max = Math.max(...vals, ref || 0, mean) * 1.15;
+  const x = i => L + (pts.length <= 1 ? (W - L - R) / 2 : i * (W - L - R) / (pts.length - 1));
+  const y = v => T + (1 - v / max) * (Hh - T - B);
+  const ticks = [0, .25, .5, .75, 1].map(t => Math.round(max * t));
+  return `<div class="plot-leg"><span style="color:#115EA3"><i></i>Média ${num(mean, 1)} min</span>${ref ? `<span style="color:#0E7C86"><i style="border-top-style:dashed"></i>Referência ${ref} min</span>` : ''}<span><b style="color:#0F6CBD">●</b> Execuções (últimas ${Math.min(list.length, 40)})</span></div><svg class="plot" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Tempos reais registrados em comparação com o tempo de referência">
+    ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke="#EEF0F3"/><text x="${L - 6}" y="${y(t) + 3}" text-anchor="end">${t}</text>`).join('')}
+    ${ref ? `<line x1="${L}" x2="${W - R}" y1="${y(ref)}" y2="${y(ref)}" stroke="#0E7C86" stroke-width="1.5" stroke-dasharray="5 4"/>` : ''}
+    <line x1="${L}" x2="${W - R}" y1="${y(mean)}" y2="${y(mean)}" stroke="#115EA3" stroke-width="1.5"/>
+    ${pts.map((e, i) => `<circle cx="${x(i)}" cy="${y(e.realMin)}" r="4" fill="#0F6CBD" fill-opacity=".75"><title>${fmtDate(e.date)} · ${e.realMin} min</title></circle>`).join('')}
+    <text x="${L}" y="${Hh - 8}">${pts.length ? fmtDate(pts[0].date) : ''}</text><text x="${W - R}" y="${Hh - 8}" text-anchor="end">${pts.length ? fmtDate(pts[pts.length - 1].date) : ''}</text>
+  </svg>`;
+}
+
+/* ============================== Rotas ============================== */
+const ROUTES = {
+  c: [['rotina', 'Minha rotina', 'home', () => pgRotina()], ['procedimentos', 'Procedimentos', 'book', () => pgProcs()],
+      ['atividades', 'Minhas atividades', 'clock', () => pgAtividades()], ['sugestoes', 'Sugestões de melhoria', 'bulb', () => pgSugestoes()]],
+  g: [['equipe', 'Visão da equipe', 'chart', () => pgEquipe()], ['distribuicao', 'Distribuição das atividades', 'users', () => pgDistrib()],
+      ['analise', 'Análise dos processos', 'trend', () => pgAnalise()], ['gestao', 'Gestão de procedimentos', 'folder', () => pgGestao()],
+      ['melhorias', 'Oportunidades de melhoria', 'bulb', () => pgMelhorias()]]
+};
+function parseHash() {
+  const m = location.hash.match(/^#\/(c|g)\/(\w+)/); const p = m ? m[1] : 'c'; let pg = m ? m[2] : null;
+  if (!ROUTES[p].some(r => r[0] === pg)) pg = ROUTES[p][0][0];
+  return [p, pg];
+}
+
+/* ============================== Casca (topo + menu) ============================== */
+function renderTop() {
+  const p = UI.p, me = PEOPLE[ME[p]];
+  let tm = '';
+  if (S.timer && p === 'c') {
+    const i = getInst(S.timer.instId);
+    if (i) tm = `<button class="tpill ${S.timer.running ? '' : 'paused'}" data-act="openTimer" title="Abrir cronômetro"><i></i><span data-clock>${clock(elapsedMs() / 1000)}</span><span class="n">${esc(i.a.name)}</span></button>`;
+  }
+  $('#topbar').innerHTML = `
+    <button class="burger" data-act="navToggle" aria-label="Abrir menu">${ic('menu', 22)}</button>
+    <div class="brand"><span class="brand-mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6CBD" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/><path d="M5 21h14" stroke-width="2"/></svg></span><span class="brand-name">Trabalho Padrão</span><small>TI · Gestão de processos</small></div>
+    <div class="top-search">${ic('search', 16)}<input type="search" id="gsearch" placeholder="Buscar procedimentos (Enter)" aria-label="Buscar procedimentos"></div>
+    <div class="top-r">${tm}<span class="pill">Protótipo · dados fictícios</span>
+      <div class="seg" role="group" aria-label="Alternar perfil"><button data-act="profile" data-p="c" class="${p === 'c' ? 'on' : ''}">Colaborador</button><button data-act="profile" data-p="g" class="${p === 'g' ? 'on' : ''}">Gestor</button></div>
+      <div class="who"><span class="av" style="background:${me.color}">${ini(me)}</span><div><b>${me.name}</b><small>${p === 'c' ? 'Colaboradora · Suporte' : 'Gestor · TI'}</small></div></div>
+    </div>`;
+}
+function renderSide() {
+  $('#sidebar').innerHTML = `<div class="side-h">${UI.p === 'c' ? 'Visão do colaborador' : 'Visão do gestor'}</div>` +
+    ROUTES[UI.p].map(r => `<a class="nav-item ${r[0] === UI.page ? 'on' : ''}" href="#/${UI.p}/${r[0]}">${ic(r[2], 20)}<span>${r[1]}</span></a>`).join('') +
+    `<div class="side-foot"><span>Protótipo de demonstração, inspirado no Fluent Design. Não integrado ao Microsoft 365.</span><button data-act="about">Sobre o protótipo e roteiro da demo</button><button data-act="reset">Restaurar dados de demonstração</button></div>`;
+}
+function render() {
+  const [p, pg] = parseHash(); UI.p = p; UI.page = pg;
+  renderTop(); renderSide();
+  const main = $('#main'), st = main.scrollTop, r = ROUTES[p].find(x => x[0] === pg);
+  main.innerHTML = `<div class="page">${r[3]()}</div>`;
+  main.scrollTop = st;
+  renderDrawer(); renderModal();
+}
+
+/* ============================== PARTE A — Colaborador ============================== */
+function pgRotina() {
+  const mon = UI.mon, fri = D.add(mon, 4), day = UI.day;
+  const insts = instancesBetween(mon, fri, a => a.userId === ME.c);
+  const list = insts.filter(i => i.date === day).sort(byTime);
+  const sm = daySummary(list), isToday = day === TODAY;
+  const dm = D.parse(mon), df = D.parse(fri);
+  const range = `${D.pad(dm.getDate())} ${MON[dm.getMonth()]} – ${D.pad(df.getDate())} ${MON[df.getMonth()]} ${df.getFullYear()}`;
+  return head('Minha rotina', 'Olá, Ana!', 'Organize suas atividades e encontre as orientações necessárias para executar seu trabalho.',
+      `<button class="btn primary" data-act="actNew">${ic('plus', 16)} Nova atividade</button>`) +
+    `<h2 class="sec-h">Resumo do dia · ${fmtShort(day)}${isToday ? ' (hoje)' : ''}</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-l">Atividades planejadas</div><div class="kpi-v">${sm.plan}</div></div>
+      <div class="kpi g"><div class="kpi-l">Atividades concluídas</div><div class="kpi-v">${sm.done}</div></div>
+      <div class="kpi t"><div class="kpi-l">Em andamento</div><div class="kpi-v">${sm.run}</div></div>
+      <div class="kpi s"><div class="kpi-l">Tempo de referência planejado</div><div class="kpi-v">${fmtMin(sm.ref)}</div></div>
+    </div>` +
+    card('Calendário semanal', calendar(insts) + `<div class="cal-legend"><span><i style="background:#EBF3FC;border:1px solid #0F6CBD"></i>Planejada</span><span><i style="background:#E3F4F5;border:1px solid #0E7C86"></i>Em andamento</span><span><i style="background:#E7F4E7;border:1px solid #107C10"></i>Concluída</span><span><i style="background:#F3F3F3;border:1px solid #A8A8A8"></i>Sem registro</span><span><i style="background:#fff;border:1px dashed #9AA7B5"></i>Sem Trabalho Padrão</span></div>`,
+      `<div class="calbar"><button class="icon-btn" data-act="weekPrev" aria-label="Semana anterior">${ic('left')}</button><b>${range}</b><button class="icon-btn" data-act="weekNext" aria-label="Próxima semana">${ic('right')}</button><button class="btn sm" data-act="weekToday">Hoje</button></div>`, 'mt') +
+    card(isToday ? 'Atividades de hoje' : `Atividades de ${fmtShort(day)}`,
+      list.length ? `<div class="acts">${list.map(actRow).join('')}</div>` : empty('clock', 'Nenhuma atividade planejada para este dia', 'Você pode adicionar uma atividade com ou sem Trabalho Padrão cadastrado.', `<button class="btn primary" data-act="actNew">${ic('plus', 16)} Nova atividade</button>`),
+      `<small>${list.length} atividade${list.length === 1 ? '' : 's'} · clique em um dia do calendário para trocar</small>`, 'mt');
+}
+
+function calendar(insts) {
+  const days = [0, 1, 2, 3, 4].map(i => D.add(UI.mon, i));
+  let h0 = 8, h1 = 18;
+  for (const i of insts) { const s = toMin(i.time); h0 = Math.min(h0, Math.floor(s / 60)); h1 = Math.max(h1, Math.ceil((s + Math.max(i.a.refMin || 30, 25)) / 60)); }
+  const ROW = 68, H = (h1 - h0) * ROW, nd = new Date(), nowMin = nd.getHours() * 60 + nd.getMinutes();
+  const headH = days.map(d => { const dt = D.parse(d); return `<button class="cal-day ${d === TODAY ? 'today' : ''} ${d === UI.day ? 'sel' : ''}" data-act="selDay" data-d="${d}" aria-label="${fmtShort(d)}">${WD[dt.getDay()]}<b>${D.pad(dt.getDate())}</b></button>`; }).join('');
+  const cols = days.map(d => {
+    const items = insts.filter(i => i.date === d).sort(byTime).map(i => ({ i, s: toMin(i.time), e: toMin(i.time) + Math.max(i.a.refMin || 30, 25) }));
+    const ends = []; items.forEach(it => { let l = 0; while (ends[l] !== undefined && ends[l] > it.s) l++; ends[l] = it.e; it.l = l; });
+    items.forEach(it => { it.n = 1 + Math.max(...items.filter(x => x.s < it.e && x.e > it.s).map(x => x.l)); });
+    const evs = items.map(it => {
+      const st = instStatus(it.i), a = it.i.a, top = (it.s - h0 * 60) / 60 * ROW, hh = Math.max((it.e - it.s) / 60 * ROW - 2, 34);
+      return `<button class="ev ${ST_CLS[st]} ${hasStd(a) ? '' : 'nostd'}" style="top:${top}px;height:${hh}px;left:calc(${it.l / it.n * 100}% + 2px);width:calc(${100 / it.n}% - 4px)" data-act="detail" data-inst="${it.i.id}" title="${esc(a.name)} · ${it.i.time} · ${st}"><b>${esc(a.name)}</b><span>${it.i.time} · ${fmtMin(a.refMin)}</span></button>`;
+    }).join('');
+    const now = (d === TODAY && nowMin >= h0 * 60 && nowMin < h1 * 60) ? `<div class="now" style="top:${(nowMin - h0 * 60) / 60 * ROW}px"></div>` : '';
+    return `<div class="cal-col ${d === TODAY ? 'today' : ''} ${d === UI.day ? 'sel' : ''}" style="height:${H}px;background-size:100% ${ROW}px">${evs}${now}</div>`;
+  }).join('');
+  const times = Array.from({ length: h1 - h0 }, (_, k) => `<div style="height:${ROW}px">${D.pad(h0 + k)}:00</div>`).join('');
+  return `<div class="cal"><div class="cal-in"><div class="cal-head"><div></div>${headH}</div><div class="cal-body"><div class="cal-times">${times}</div>${cols}</div></div></div>`;
+}
+
+function actRow(i) {
+  const a = i.a, st = instStatus(i), p = a.procId ? proc(a.procId) : null, std = isPub(p), nn = (S.notes[i.id] || []).length;
+  const e = IDX[i.id];
+  let main;
+  if (st === 'Em andamento') main = `<button class="btn primary" data-act="openTimer">${ic('clock', 16)} Abrir cronômetro</button>`;
+  else if (e) main = `<button class="btn subtle" data-act="detail" data-inst="${i.id}">${ic('check', 16)} ${st} · ${e.realMin} min</button>`;
+  else main = `<button class="btn primary" data-act="start" data-inst="${i.id}">${ic('play', 16)} Iniciar atividade</button>`;
+  return `<article class="act ${st === 'Concluída' ? 'done' : ''}">
+    <div class="act-time"><b>${i.time}</b><span>${fmtMin(a.refMin)}</span></div>
+    <div class="act-main"><h4>${esc(a.name)}</h4><p>${esc(a.description || '')}</p>
+      <div class="chips">${badge(st, ST_KIND[st])}${badge(a.frequency, 'outline')}${std ? badge('Trabalho Padrão v' + p.version, 'blue-o') : badge('Sem Trabalho Padrão cadastrado', 'dashed')}${nn ? badge(nn + ' observação' + (nn > 1 ? 'ões' : ''), 'outline') : ''}</div></div>
+    <div class="act-btns">
+      <button class="btn sm" data-act="detail" data-inst="${i.id}">${ic('eye', 15)} Visualizar detalhes</button>
+      <button class="btn sm" data-act="std" data-p="${std ? p.id : ''}" data-inst="${i.id}">${ic('book', 15)} Consultar procedimento</button>
+      <button class="btn sm" data-act="noteOpen" data-inst="${i.id}">${ic('note', 15)} Adicionar observação</button>
+      ${main}
+    </div></article>`;
+}
+
+function pgProcs() {
+  const q = UI.f.procQ.trim().toLowerCase(), cat = UI.f.procCat;
+  const pubs = S.procedures.filter(isPub);
+  const list = pubs.filter(p => (!cat || p.category === cat) && (!q || (p.name + ' ' + p.description + ' ' + p.category + ' ' + PEOPLE[p.owner].name).toLowerCase().includes(q)))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  return head('Base de conhecimento', 'Procedimentos', 'Consulte o Trabalho Padrão de cada atividade: como fazer, quanto tempo, quem e quando.') +
+    `<div class="filters"><div class="sbox">${ic('search', 16)}<input type="search" data-filter="procQ" value="${esc(UI.f.procQ)}" placeholder="Pesquisar procedimentos" aria-label="Pesquisar procedimentos"></div>
+      <div class="chips"><button class="chip-btn ${cat ? '' : 'on'}" data-act="procCat" data-c="">Todos (${pubs.length})</button>${CATS.map(c => `<button class="chip-btn ${cat === c ? 'on' : ''}" data-act="procCat" data-c="${esc(c)}">${c} (${pubs.filter(p => p.category === c).length})</button>`).join('')}</div></div>` +
+    card(`${list.length} procedimento${list.length === 1 ? '' : 's'} publicado${list.length === 1 ? '' : 's'}`,
+      list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Procedimento</th><th>Categoria</th><th>Responsável pelo processo</th><th>Frequência</th><th>Última atualização</th></tr></thead><tbody>${list.map(p => `
+        <tr class="click" data-act="std" data-p="${p.id}"><td><div class="cell-name"><span class="fileic">${ic('file', 17)}</span><div><b>${esc(p.name)}</b><small>${esc(p.description)}</small></div></div></td>
+        <td>${badge(p.category, 'blue-o')}</td><td>${person(p.owner)}</td><td>${p.frequency}</td><td>${fmtDate(p.updated)}<br><small style="color:var(--muted)">${rel(p.updated)} · v${p.version}</small></td></tr>`).join('')}</tbody></table></div>`
+        : empty('search', 'Nenhum procedimento encontrado', 'Tente outro termo ou limpe o filtro de categoria.'));
+}
+
+function pgAtividades() {
+  const f = UI.f, from = f.hPer === 'all' ? '0000-00-00' : D.add(TODAY, -Number(f.hPer));
+  const q = f.hQ.trim().toLowerCase();
+  const all = S.executions.filter(e => e.userId === ME.c && e.date >= from && (!q || e.name.toLowerCase().includes(q))).sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  const list = all.slice(0, f.hLimit), tot = all.reduce((s, e) => s + e.realMin, 0);
+  return head('Histórico', 'Minhas atividades', 'Seus registros de execução. Eles ajudam a entender os processos e não avaliam pessoas.',
+      `<button class="btn primary" data-act="manualNew">${ic('plus', 16)} Registrar tempo manualmente</button>`) +
+    `<div class="kpis"><div class="kpi"><div class="kpi-l">Registros no período</div><div class="kpi-v">${all.length}</div></div>
+      <div class="kpi t"><div class="kpi-l">Tempo registrado</div><div class="kpi-v">${fmtMin(tot)}</div></div>
+      <div class="kpi s"><div class="kpi-l">Atividades diferentes</div><div class="kpi-v">${new Set(all.map(e => e.name)).size}</div></div></div>
+    <div class="filters"><div class="sbox">${ic('search', 16)}<input type="search" data-filter="hQ" value="${esc(f.hQ)}" placeholder="Filtrar por atividade" aria-label="Filtrar por atividade"></div>
+      <div class="field"><label for="hPer">Período</label><select id="hPer" data-filter="hPer"><option value="7" ${f.hPer === '7' ? 'selected' : ''}>Últimos 7 dias</option><option value="30" ${f.hPer === '30' ? 'selected' : ''}>Últimos 30 dias</option><option value="all" ${f.hPer === 'all' ? 'selected' : ''}>Todo o histórico</option></select></div></div>` +
+    card('Registros de execução', list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Data</th><th>Atividade</th><th class="num">Referência</th><th class="num">Tempo real</th><th>Status</th><th>Observação</th></tr></thead><tbody>${list.map(e => `
+      <tr><td>${fmtDate(e.date)}</td><td><b>${esc(e.name)}</b></td><td class="num">${e.refMin ? e.refMin + ' min' : '—'}</td><td class="num"><b>${e.realMin} min</b></td><td>${badge(e.status, e.status === 'Concluída' ? 'green' : e.status === 'Parcial' ? 'amber' : 'gray')}</td><td style="color:var(--muted)">${esc(e.note) || '—'}</td></tr>`).join('')}</tbody></table></div>
+      ${all.length > list.length ? `<div style="text-align:center;margin-top:12px"><button class="btn" data-act="hMore">Mostrar mais (${all.length - list.length})</button></div>` : ''}`
+      : empty('clock', 'Nenhum registro no período', 'Inicie uma atividade ou registre o tempo manualmente.'));
+}
+
+function sugCard(s, mgr) {
+  const u = PEOPLE[s.userId], kind = { 'Nova': 'blue', 'Em análise': 'amber', 'Implementada': 'green', 'Não aprovada': 'gray' }[s.status];
+  const pr = S.procedures.find(p => p.name === s.activity || S.activities.some(a => a.name === s.activity && a.procId === p.id));
+  return `<article class="kcard"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px">${badge(s.activity, 'blue-o')}${mgr ? '' : badge(s.status, kind)}</div>
+    <p><b>Oportunidade:</b> ${esc(s.description)}</p><p><b>Sugestão:</b> ${esc(s.suggestion)}</p>
+    ${s.response ? `<div class="resp"><b>Retorno da gestão:</b> ${esc(s.response)}</div>` : ''}
+    <div class="meta"><span class="person">${avatar(s.userId, 20)}${esc(u.short)} · ${fmtDate(s.date)}</span>
+      ${mgr ? `<span class="row-acts">${pr && isPub(pr) ? `<button class="btn sm" data-act="std" data-p="${pr.id}">Ver procedimento</button>` : ''}<button class="btn sm primary" data-act="sugReply" data-id="${s.id}">Analisar</button></span>` : ''}</div></article>`;
+}
+function pgSugestoes() {
+  const mine = S.suggestions.filter(s => s.userId === ME.c).sort((a, b) => b.date.localeCompare(a.date));
+  return head('Melhoria contínua', 'Sugestões de melhoria', 'Registre oportunidades que você percebe no dia a dia. A gestão analisa cada uma delas.',
+      `<button class="btn primary" data-act="sugNew">${ic('plus', 16)} Nova sugestão</button>`) +
+    `<div class="how" style="margin-bottom:16px"><div><b>1. Você registra</b>Descreva a oportunidade e a melhoria que imagina.</div><div><b>2. A gestão analisa</b>Cada sugestão passa pelos status Nova, Em análise, Implementada ou Não aprovada.</div><div><b>3. O padrão só muda com revisão</b>Sugestões não alteram o procedimento oficial automaticamente.</div></div>` +
+    card(`Minhas sugestões (${mine.length})`, mine.length ? `<div class="grid g2">${mine.map(s => sugCard(s, false)).join('')}</div>` : empty('bulb', 'Você ainda não registrou sugestões', 'Identificou uma etapa que poderia ser simplificada? Conte pra gente.', `<button class="btn primary" data-act="sugNew">${ic('plus', 16)} Nova sugestão</button>`));
+}
+
+/* ============================== PARTE B — Gestor ============================== */
+function pgEquipe() {
+  const names = distinctNames(), withStd = names.filter(n => S.activities.some(a => a.name === n && hasStd(a)));
+  const mon = D.monday(TODAY), fri = D.add(mon, 4), wk = instancesBetween(mon, fri);
+  const wkMin = wk.reduce((s, i) => s + (i.a.refMin || 0), 0);
+  const pubs = S.procedures.filter(isPub).length, an = analysis('all'), flagged = an.filter(x => x.flag);
+  const old = S.procedures.filter(p => isPub(p) && isOld(p)), openS = S.suggestions.filter(s => s.status === 'Nova' || s.status === 'Em análise').length;
+  const newS = S.suggestions.filter(s => s.status === 'Nova').length;
+  const e28 = S.executions.filter(e => e.date >= D.add(TODAY, -28)).length, doneWk = S.executions.filter(e => e.date >= mon && e.date <= fri && e.status === 'Concluída').length;
+  const noStd = names.length - withStd.length;
+  const rows = TEAM.map(u => {
+    const mine = S.activities.filter(a => a.userId === u), w = mine.filter(hasStd).length, min = wk.filter(i => i.a.userId === u).reduce((s, i) => s + (i.a.refMin || 0), 0);
+    return { label: `${avatar(u, 22)}${esc(PEOPLE[u].name)}`, segs: [{ v: w, c: '#0F6CBD', t: 'Com Trabalho Padrão' }, { v: mine.length - w, c: '#A9B4C0', t: 'Sem Trabalho Padrão' }], val: `${mine.length} atividades · ${fmtMin(min)}/sem` };
+  });
+  const weeks = Array.from({ length: 8 }, (_, k) => { const m = D.add(mon, -7 * (7 - k)); return { m, n: S.executions.filter(e => e.date >= m && e.date <= D.add(m, 6)).length }; });
+  const wmax = Math.max(...weeks.map(w => w.n), 1);
+  const pipe = WORKFLOW.map(w => [w, S.procedures.filter(p => p.status === w).length]);
+  return head('Gestor', 'Visão da equipe', 'Uma visão consolidada das atividades, responsabilidades e oportunidades de melhoria.') +
+    `<nav class="cycle" aria-label="Ciclo do Trabalho Padrão">
+      <a href="#/g/distribuicao"><i>1 · Organizar</i><b>${names.length}</b><span>atividades mapeadas</span></a>
+      <a href="#/g/gestao"><i>2 · Consultar</i><b>${pubs}</b><span>padrões publicados</span></a>
+      <a href="#/g/distribuicao"><i>3 · Executar</i><b>${doneWk}</b><span>concluídas nesta semana</span></a>
+      <a href="#/g/analise"><i>4 · Registrar</i><b>${e28}</b><span>registros em 4 semanas</span></a>
+      <a href="#/g/analise"><i>5 · Analisar</i><b>${flagged.length}</b><span>com diferença recorrente</span></a>
+      <a href="#/g/melhorias"><i>6 · Melhorar</i><b>${openS}</b><span>sugestões em aberto</span></a></nav>
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-l">Atividades mapeadas</div><div class="kpi-v">${names.length}</div><div class="kpi-s">processos distintos da equipe</div></div>
+      <div class="kpi t"><div class="kpi-l">Procedimentos documentados</div><div class="kpi-v">${pubs}</div><div class="kpi-s">${S.procedures.length - pubs} em elaboração ou revisão</div></div>
+      <div class="kpi a"><div class="kpi-l">Atividades sem procedimento</div><div class="kpi-v">${noStd}</div><div class="kpi-s">${num(withStd.length / names.length * 100, 0)}% já padronizadas</div></div>
+      <div class="kpi s"><div class="kpi-l">Colaboradores</div><div class="kpi-v">${TEAM.length}</div><div class="kpi-s">na equipe de TI</div></div>
+      <div class="kpi g"><div class="kpi-l">Tempo de referência planejado</div><div class="kpi-v">${fmtMin(wkMin)}</div><div class="kpi-s">na semana, soma da equipe</div></div></div>
+    <div class="grid g-ms">
+      ${card('Distribuição das atividades por colaborador', stackBars(rows) + `<div class="legend"><span><i style="background:#0F6CBD"></i>Com Trabalho Padrão</span><span><i style="background:#A9B4C0"></i>Sem Trabalho Padrão</span></div>`, `<a class="btn ghost sm" href="#/g/distribuicao">Ver detalhes</a>`)}
+      ${card('Cobertura de Trabalho Padrão', `<div class="donut-w">${donut([{ v: withStd.length, c: '#0F6CBD', t: 'Com padrão publicado' }, { v: noStd, c: '#A9B4C0', t: 'Sem padrão' }], num(withStd.length / names.length * 100, 0) + '%', 'padronizadas')}
+        <div class="legend" style="flex-direction:column;gap:8px;margin:0"><span><i style="background:#0F6CBD"></i><b>${withStd.length}</b> com procedimento publicado</span><span><i style="background:#A9B4C0"></i><b>${noStd}</b> sem procedimento cadastrado</span></div></div>`)}
+    </div>
+    <div class="grid g-ms mt">
+      ${card('Registros de execução por semana', `<div class="cols">${weeks.map((w, k) => `<div class="col ${k === 7 ? 'cur' : ''}"><b>${w.n}</b><div class="bar" style="height:${w.n / wmax * 100}%"></div>${D.pad(D.parse(w.m).getDate())}/${D.pad(D.parse(w.m).getMonth() + 1)}</div>`).join('')}</div><small style="color:var(--muted)">Semana atual ainda em andamento (barra mais clara).</small>`)}
+      ${card('Procedimentos por etapa de revisão', `<div class="pipe" style="grid-template-columns:repeat(2,1fr);margin:0">${pipe.map(([w, n]) => `<button data-act="gStatusGo" data-s="${w}"><b>${n}</b><span>${w}</span></button>`).join('')}</div>`)}
+    </div>
+    ${card('Pontos de atenção', `<div class="attn">
+      <a href="#/g/gestao" data-act="gOldGo"><span class="ai">${ic('alert', 18)}</span><div><b>${old.length} procedimento${old.length === 1 ? '' : 's'} sem atualização há mais de 6 meses</b><small>${old.map(p => esc(p.name)).join(' · ') || 'Nenhum no momento'}</small></div></a>
+      <a href="#/g/analise"><span class="ai">${ic('trend', 18)}</span><div><b>${flagged.length} atividade${flagged.length === 1 ? '' : 's'} com diferença recorrente em relação ao tempo de referência</b><small>Vale investigar o processo, não as pessoas: ${flagged.slice(0, 3).map(x => esc(x.name)).join(' · ')}${flagged.length > 3 ? '…' : ''}</small></div></a>
+      <a href="#/g/melhorias"><span class="ai b">${ic('bulb', 18)}</span><div><b>${newS} sugest${newS === 1 ? 'ão nova' : 'ões novas'} aguardando análise</b><small>Registradas pelos colaboradores</small></div></a>
+      <a href="#/g/distribuicao" data-act="dNoGo"><span class="ai b">${ic('file', 18)}</span><div><b>${noStd} atividades sem Trabalho Padrão cadastrado</b><small>Oportunidade de documentar o conhecimento da equipe</small></div></a></div>`, '', 'mt')}`;
+}
+
+const rangeOf = per => { const mon = D.monday(TODAY); return per === 'week' ? [mon, D.add(mon, 4)] : per === 'next' ? [D.add(mon, 7), D.add(mon, 11)] : [TODAY, D.add(TODAY, 29)]; };
+function pgDistrib() {
+  const f = UI.f, [from, to] = rangeOf(f.dPer), names = distinctNames();
+  const acts = S.activities.filter(a => (!f.dUser || a.userId === f.dUser) && (!f.dAct || a.name === f.dAct) && (!f.dNo || !hasStd(a)))
+    .sort((a, b) => TEAM.indexOf(a.userId) - TEAM.indexOf(b.userId) || a.time.localeCompare(b.time));
+  const insts = instancesBetween(from, to), users = f.dUser ? [f.dUser] : TEAM, cats = new Set();
+  const loadRows = users.map(u => {
+    const by = {}; insts.filter(i => i.a.userId === u).forEach(i => { const c = catOf(i.a); by[c] = (by[c] || 0) + (i.a.refMin || 0); });
+    Object.keys(by).forEach(c => cats.add(c));
+    return { label: `${avatar(u, 22)}${esc(PEOPLE[u].name)}`, segs: Object.entries(by).map(([c, v]) => ({ v: v / 60, c: CAT_COLOR[c], t: c })), val: fmtMin(Object.values(by).reduce((s, x) => s + x, 0)) };
+  });
+  const occ = a => insts.filter(i => i.a.id === a.id).length, total = acts.reduce((s, a) => s + occ(a) * (a.refMin || 0), 0);
+  return head('Gestor', 'Distribuição das atividades', 'Veja como o trabalho está distribuído para apoiar conversas sobre equilíbrio e redistribuição. Não há ranking de pessoas.',
+      `<button class="btn primary" data-act="actNew">${ic('plus', 16)} Adicionar atividade à agenda</button>`) +
+    `<div class="filters">
+      <div class="field"><label for="dUser">Colaborador</label><select id="dUser" data-filter="dUser"><option value="">Todos</option>${TEAM.map(u => `<option value="${u}" ${f.dUser === u ? 'selected' : ''}>${PEOPLE[u].name}</option>`).join('')}</select></div>
+      <div class="field"><label for="dAct">Atividade</label><select id="dAct" data-filter="dAct"><option value="">Todas</option>${names.map(n => `<option ${f.dAct === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+      <div class="field"><label for="dPer">Período</label><select id="dPer" data-filter="dPer"><option value="week" ${f.dPer === 'week' ? 'selected' : ''}>Esta semana</option><option value="next" ${f.dPer === 'next' ? 'selected' : ''}>Próxima semana</option><option value="m30" ${f.dPer === 'm30' ? 'selected' : ''}>Próximos 30 dias</option></select></div>
+      <label class="chk" style="padding-bottom:8px"><input type="checkbox" data-filter="dNo" ${f.dNo ? 'checked' : ''}> Somente sem padrão</label></div>` +
+    card(`Carga de trabalho planejada · ${fmtDate(from)} a ${fmtDate(to)}`, stackBars(loadRows, v => num(v, 1) + ' h') +
+      `<div class="legend">${[...cats].map(c => `<span><i style="background:${CAT_COLOR[c]}"></i>${c}</span>`).join('')}</div><p style="color:var(--muted);font-size:12.5px;margin-top:10px">Soma dos tempos de referência das ocorrências planejadas. Serve para enxergar a distribuição, não para medir desempenho.</p>`) +
+    card(`Atividades da equipe (${acts.length})`, acts.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Colaborador</th><th>Atividade</th><th>Frequência</th><th class="num">Tempo de referência</th><th class="num">Ocorrências</th><th>Responsável pelo processo</th><th>Status</th><th></th></tr></thead><tbody>${acts.map(a => {
+      const p = a.procId ? proc(a.procId) : null, std = isPub(p);
+      return `<tr><td>${person(a.userId)}</td><td><b>${esc(a.name)}</b><br><small style="color:var(--muted)">${a.frequency} · ${a.time}</small></td><td>${a.frequency}</td><td class="num">${fmtMin(a.refMin)}</td><td class="num">${occ(a)}</td>
+        <td>${std ? person(p.owner) : '<span style="color:var(--muted)">—</span>'}</td><td>${std ? badge('Com padrão', 'blue-o') : badge('Sem padrão', 'dashed')} ${std && isOld(p) ? badge('Desatualizado', 'amber') : ''}</td>
+        <td><div class="row-acts">${std ? `<button class="btn sm" data-act="std" data-p="${p.id}">${ic('book', 14)} Padrão</button>` : `<button class="btn sm primary" data-act="assoc" data-name="${esc(a.name)}">Associar padrão</button>`}
+        <button class="btn sm" data-act="actEdit" data-id="${a.id}">${ic('edit', 14)} Editar</button><button class="btn sm" data-act="hist" data-id="${a.id}">${ic('history', 14)} Histórico</button></div></td></tr>`;
+    }).join('')}</tbody><tfoot><tr><td colspan="3">Tempo planejado no período</td><td class="num" colspan="2">${fmtMin(total)}</td><td colspan="3"></td></tr></tfoot></table></div>` : empty('search', 'Nenhuma atividade com esses filtros', 'Ajuste os filtros acima.'), '', 'mt');
+}
+
+function pgAnalise() {
+  const per = UI.f.anPer, an = analysis(per).sort((a, b) => (b.flag - a.flag) || (Math.abs(b.diff || 0) - Math.abs(a.diff || 0)));
+  const sel = an.find(x => x.name === UI.an) || an.find(x => x.name === 'Verificação de chamados') || an[0];
+  UI.an = sel && sel.name;
+  const max = Math.max(...an.map(x => Math.max(x.ref || 0, x.mean)), 1), flagged = an.filter(x => x.flag).length;
+  const row = x => `<button class="an-row ${sel && x.name === sel.name ? 'sel' : ''}" data-act="anSel" data-n="${esc(x.name)}">
+    <div class="an-name"><b>${esc(x.name)}</b><small>${x.std ? 'Com padrão' : 'Sem padrão'} · ${x.n} execuções</small></div>
+    <div class="an-bars"><div class="bar-l ref" style="width:${(x.ref || 0) / max * 85}%"><span>ref. ${x.ref || '—'}</span></div><div class="bar-l real ${x.flag ? 'flag' : ''}" style="width:${x.mean / max * 85}%"><span>${num(x.mean, 1)}</span></div></div>
+    <div class="an-num">${x.diff == null ? '—' : (x.diff > 0 ? '+' : '') + num(x.diff, 0) + '%'}</div>
+    <div>${x.flag ? badge('Diferença recorrente', 'amber') : x.small ? badge('Poucos registros', 'gray') : badge('Próxima da referência', 'green')}</div></button>`;
+  const causes = s => {
+    const cv = s.sd / s.mean;
+    return [
+      ['Procedimento que precisa ser atualizado', 'As etapas ainda refletem o ambiente atual?', s.old],
+      ['Etapas desnecessárias', 'Há passos repetidos ou que poderiam ser combinados?', s.flag && s.diff > 0],
+      ['Complexidade não prevista', 'Os tempos variam muito de uma execução para outra?', cv > .15],
+      ['Necessidade de capacitação', 'Quem executa tem material e apoio suficientes?', false],
+      ['Oportunidade de automação', 'Parte da atividade é manual e repetitiva?', s.flag && s.diff > 0 && s.n >= 20],
+      ['Tempo de referência inadequado', s.std ? 'A referência foi definida com base na prática atual?' : 'Ainda não há padrão: a referência pode ser apenas estimada.', s.flag || !s.std]
+    ];
+  };
+  return head('Gestor', 'Análise dos processos', 'Compare o tempo de referência com os tempos reais registrados para investigar causas nos processos, nunca para julgar pessoas.') +
+    `<div class="note">${ic('info', 18)}<div>Os números abaixo reúnem os registros de toda a equipe por atividade, sem identificar quem executou. Uma diferença não é, por si só, um problema de desempenho. Ela indica onde vale investigar o processo. Considera apenas execuções concluídas.</div></div>
+    <div class="filters mt"><div class="field"><label for="anPer">Período dos registros</label><select id="anPer" data-filter="anPer"><option value="4" ${per === '4' ? 'selected' : ''}>Últimas 4 semanas</option><option value="8" ${per === '8' ? 'selected' : ''}>Últimas 8 semanas</option><option value="all" ${per === 'all' ? 'selected' : ''}>Todo o histórico</option></select></div>
+      <div class="chips" style="padding-bottom:8px">${badge(an.length + ' atividades analisadas', 'blue-o')}${badge(flagged + ' com diferença recorrente', 'amber')}${badge(an.reduce((s, x) => s + x.n, 0) + ' execuções', 'outline')}</div></div>
+    <div class="grid g-ms">
+      ${card('Tempo de referência × tempo real médio (min)', `<div class="legend" style="margin:0 0 6px"><span><i style="background:#B7C4D1"></i>Tempo de referência</span><span><i style="background:#0F6CBD"></i>Média dos tempos reais</span><span><i style="background:#C19C00"></i>Diferença recorrente (±20% com 4+ registros)</span></div><div style="margin:0 -16px -16px">${an.map(row).join('') || empty('trend', 'Sem registros no período', 'Registre execuções para ver a comparação.')}</div>`)}
+      ${sel ? card(esc(sel.name), `<div class="chips">${sel.flag ? badge('Diferença recorrente', 'amber') : badge('Dentro do esperado', 'green')}${badge(sel.cat, 'outline')}</div>
+        <div class="stats"><div class="stat"><small>Referência</small><b>${sel.ref ? sel.ref + ' min' : '—'}</b></div><div class="stat"><small>Média real</small><b>${num(sel.mean, 1)} min</b></div><div class="stat"><small>Variação (desvio)</small><b>± ${num(sel.sd, 1)}</b></div><div class="stat"><small>Mín. – Máx.</small><b>${sel.min}–${sel.max}</b></div><div class="stat"><small>Execuções</small><b>${sel.n}</b></div></div>
+        ${dotPlot(sel.list, sel.ref, sel.mean)}
+        <div class="sec-t">Possíveis pontos a investigar</div><div class="causes">${causes(sel).map(([t, h, hint]) => `<div class="cause ${hint ? 'hint' : ''}">${ic(hint ? 'alert' : 'info', 16)}<div><b>${t}${hint ? ' · sugerido pelos dados' : ''}</b><small>${h}</small></div></div>`).join('')}</div>
+        <div class="chips" style="margin-top:12px">${sel.procId ? `<button class="btn sm" data-act="procEdit" data-id="${sel.procId}">${ic('edit', 14)} Revisar procedimento</button>` : `<button class="btn sm" data-act="procNew" data-name="${esc(sel.name)}">${ic('plus', 14)} Cadastrar procedimento</button>`}<button class="btn sm" data-act="adjRef" data-n="${esc(sel.name)}">${ic('clock', 14)} Ajustar tempo de referência</button><button class="btn sm" data-act="melGo" data-n="${esc(sel.name)}">${ic('bulb', 14)} Ver sugestões</button></div>`) : ''}
+    </div>`;
+}
+
+function pgGestao() {
+  const f = UI.f, q = f.gQ.trim().toLowerCase();
+  const list = S.procedures.filter(p => (!f.gStatus || p.status === f.gStatus) && (!f.gOwner || p.owner === f.gOwner) && (!f.gOld || (isPub(p) && isOld(p))) && (!q || (p.name + ' ' + p.category).toLowerCase().includes(q)))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  return head('Gestor', 'Gestão de procedimentos', 'Cadastre, revise e publique o Trabalho Padrão. Sugestões individuais nunca alteram o procedimento oficial automaticamente.',
+      `<button class="btn primary" data-act="procNew">${ic('plus', 16)} Novo procedimento</button>`) +
+    `<div class="pipe">${WORKFLOW.map(w => `<button class="${f.gStatus === w ? 'on' : ''}" data-act="gStatus" data-s="${w}"><b>${S.procedures.filter(p => p.status === w).length}</b><span>${w}</span></button>`).join('')}</div>
+    <div class="filters"><div class="sbox">${ic('search', 16)}<input type="search" data-filter="gQ" value="${esc(f.gQ)}" placeholder="Pesquisar procedimentos" aria-label="Pesquisar procedimentos"></div>
+      <div class="field"><label for="gOwner">Responsável</label><select id="gOwner" data-filter="gOwner"><option value="">Todos</option>${TEAM.map(u => `<option value="${u}" ${f.gOwner === u ? 'selected' : ''}>${PEOPLE[u].name}</option>`).join('')}</select></div>
+      <label class="chk" style="padding-bottom:8px"><input type="checkbox" data-filter="gOld" ${f.gOld ? 'checked' : ''}> Desatualizados (6+ meses)</label>
+      ${(f.gStatus || f.gOwner || f.gOld || f.gQ) ? `<button class="btn ghost sm" data-act="gClear">Limpar filtros</button>` : ''}</div>` +
+    card(`${list.length} procedimento${list.length === 1 ? '' : 's'}`, list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Procedimento</th><th>Responsável</th><th>Capacitados</th><th>Frequência</th><th>Versão · atualização</th><th>Situação</th><th></th></tr></thead><tbody>${list.map(p => `
+      <tr class="click" data-act="std" data-p="${p.id}"><td><div class="cell-name"><span class="fileic">${ic('file', 17)}</span><div><b>${esc(p.name)}</b><small>${p.category}</small></div></div></td>
+      <td>${person(p.owner)}</td><td><span class="avs">${p.capable.map(u => avatar(u)).join('')}</span></td><td>${p.frequency}</td><td>v${p.version}<br><small style="color:var(--muted)">${fmtDate(p.updated)}</small></td>
+      <td>${badge(p.status, { 'Rascunho': 'gray', 'Em revisão': 'amber', 'Aprovado': 'teal', 'Publicado': 'blue' }[p.status])} ${isPub(p) && isOld(p) ? badge('Desatualizado', 'amber') : ''}</td>
+      <td><div class="row-acts"><button class="btn sm" data-act="procEdit" data-id="${p.id}">${ic('edit', 14)} Editar</button></div></td></tr>`).join('')}</tbody></table></div>` : empty('search', 'Nenhum procedimento com esses filtros', 'Limpe os filtros para ver todos.'));
+}
+
+function pgMelhorias() {
+  const act0 = UI.f.melAct, all = S.suggestions.filter(s => !act0 || s.activity === act0).sort((a, b) => b.date.localeCompare(a.date));
+  const ideas = [['Avisar o responsável quando uma nova sugestão for registrada', 'Notificação automática para a gestão'], ['Lembrar a revisão de procedimentos com mais de 6 meses', 'Alerta periódico ao responsável pelo processo'], ['Registrar automaticamente a abertura da fila de chamados', 'Reduz o registro manual de início da atividade']];
+  return head('Gestor', 'Oportunidades de melhoria', 'Sugestões registradas pelos colaboradores. A análise da gestão decide o que vira revisão do padrão oficial.') +
+    `<div class="note">${ic('info', 18)}<div>Uma sugestão aprovada <b>não altera o procedimento automaticamente</b>. Ela alimenta a revisão do padrão, que segue o fluxo Rascunho → Em revisão → Aprovado → Publicado.</div></div>
+    ${act0 ? `<div class="chips mt">${badge('Filtro: ' + act0, 'blue-o')}<button class="btn ghost sm" data-act="melClear">Limpar filtro</button></div>` : ''}
+    <div class="board mt">${SUGG_STATUS.map((st, k) => { const l = all.filter(s => s.status === st); return `<div class="bcol c${k + 1}"><h3>${st}<span>${l.length}</span></h3>${l.map(s => sugCard(s, true)).join('') || '<p style="color:var(--muted);font-size:12.5px;padding:4px">Nada por aqui.</p>'}</div>`; }).join('')}</div>
+    ${card('Ideias de automação (conceito)', `<p style="color:var(--muted);font-size:12.5px;margin-bottom:6px">Exemplos do que poderia ser automatizado em um ambiente Microsoft 365 com Power Automate. Nada disso existe neste protótipo.</p>${ideas.map(([t, s]) => `<div class="idea">${ic('bolt', 16)}<div><b>${t}</b><br><small style="color:var(--muted)">${s}</small></div></div>`).join('')}`, badge('Conceito · não implementado', 'dashed'), 'mt')}`;
+}
+
+/* ============================== Painel lateral: Trabalho Padrão ============================== */
+function renderDrawer() {
+  const d = $('#drawer'), sc = $('#scrim');
+  if (!UI.drawer) { d.hidden = true; sc.hidden = true; d.innerHTML = ''; return; }
+  const old = $('.dr-b', d), st = old ? old.scrollTop : 0;
+  d.hidden = false; sc.hidden = false; d.innerHTML = drawerHtml(UI.drawer);
+  const nb = $('.dr-b', d); if (nb) nb.scrollTop = st;
+}
+function drawerHtml(d) {
+  const mgr = UI.p === 'g', close = `<button class="icon-btn" data-act="closeDrawer" aria-label="Fechar painel">${ic('x', 20)}</button>`;
+  const p = d.procId ? proc(d.procId) : null;
+  if (!p || (!mgr && !isPub(p))) {
+    const i = d.instId ? getInst(d.instId) : null, nm = d.name || (i && i.a.name) || 'Atividade';
+    return `<div class="dr-h"><div class="row"><div>${badge('Sem Trabalho Padrão cadastrado', 'dashed')}<h2>${esc(nm)}</h2></div>${close}</div></div>
+      <div class="dr-b">${empty('file', 'Sem Trabalho Padrão cadastrado', 'Esta atividade ainda não tem um procedimento documentado. Você pode executá-la e registrar o tempo normalmente.',
+        mgr ? `<div class="chips" style="justify-content:center"><button class="btn primary" data-act="procNew" data-name="${esc(nm)}">Cadastrar procedimento</button><button class="btn" data-act="assoc" data-name="${esc(nm)}">Associar existente</button></div>`
+            : `<button class="btn primary" data-act="sugNew" data-activity="${esc(nm)}">${ic('bulb', 16)} Sugerir padrão para esta atividade</button>`)}</div>`;
+  }
+  const tab = d.tab || 'std', idx = WORKFLOW.indexOf(p.status);
+  const next = ['Enviar para revisão', 'Aprovar', 'Publicar'][idx], back = [null, 'Voltar para rascunho', 'Devolver para revisão', 'Despublicar'][idx];
+  const st = (d.done = d.done || {});
+  const body = tab === 'hist'
+    ? `<div class="sec-t">Histórico de alterações</div><ul class="mini-list">${p.history.map(h => `<li><span>${ic('history', 14)} ${esc(h.note)}</span><span style="color:var(--muted);white-space:nowrap">${fmtDate(h.date)} · ${esc(PEOPLE[h.who].short)}</span></li>`).join('')}</ul>`
+    : `${mgr ? `<div class="sec-t">Fluxo de revisão</div>${flowSteps(p.status)}<div class="chips" style="margin-top:10px">${back ? `<button class="btn sm" data-act="procFlow" data-id="${p.id}" data-dir="-1">${back}</button>` : ''}${next ? `<button class="btn sm primary" data-act="procFlow" data-id="${p.id}" data-dir="1">${next}</button>` : ''}</div>
+        ${!isPub(p) ? `<div class="note warn" style="margin-top:10px">${ic('alert', 16)}<div>Ainda não publicado: colaboradores não visualizam este procedimento.</div></div>` : ''}${isPub(p) && isOld(p) ? `<div class="note warn" style="margin-top:10px">${ic('alert', 16)}<div>Sem atualização há ${daysAgo(p.updated)} dias. Considere uma revisão.</div></div>` : ''}` : ''}
+      <div class="sec-t">Identificação</div>
+      <dl class="kv"><dt>Descrição</dt><dd>${esc(p.description)}</dd><dt>Objetivo</dt><dd>${esc(p.objective)}</dd><dt>Frequência</dt><dd>${p.frequency}</dd><dt>Tempo de referência</dt><dd>${fmtMin(p.refMin)}</dd></dl>
+      <div class="sec-t">Responsabilidades</div>
+      <dl class="kv"><dt>Responsável pelo processo</dt><dd>${person(p.owner)}</dd><dt>Pessoas capacitadas</dt><dd class="chips">${p.capable.map(person).join('') || '—'}</dd></dl>
+      <div class="sec-t">Procedimento</div>
+      <ol class="steps">${p.steps.map((s, i) => `<li class="step ${st[i] ? 'ok' : ''}"><label><input type="checkbox" data-stepchk="${i}" ${st[i] ? 'checked' : ''}><span class="n">${i + 1}</span><span><b>${esc(s.t)}</b>${s.d ? `<p>${esc(s.d)}</p>` : ''}</span></label></li>`).join('')}</ol>
+      <div class="sec-t">Recursos necessários</div>
+      <p class="lbl" style="margin-bottom:6px">Sistemas utilizados</p><div class="chips">${p.systems.map(s => badge(s, 'blue-o')).join('') || '<span style="color:var(--muted)">—</span>'}</div>
+      <p class="lbl" style="margin:12px 0 6px">Documentos relacionados</p><div class="res-list">${p.docs.map((x, i) => docBtn(p, 'docs', i, x)).join('') || '<span style="color:var(--muted)">—</span>'}</div>
+      <p class="lbl" style="margin:12px 0 6px">Materiais de apoio</p><div class="res-list">${p.materials.map((x, i) => docBtn(p, 'materials', i, x)).join('') || '<span style="color:var(--muted)">—</span>'}</div>`;
+  return `<div class="dr-h"><div class="row"><div><div class="chips">${badge(p.category, 'blue-o')}${mgr ? badge(p.status, { 'Rascunho': 'gray', 'Em revisão': 'amber', 'Aprovado': 'teal', 'Publicado': 'blue' }[p.status]) : ''}</div><h2>${esc(p.name)}</h2>
+      <small style="color:var(--muted)">Versão ${p.version} · atualizado em ${fmtDate(p.updated)}</small></div><div style="display:flex;gap:4px">${mgr ? `<button class="btn sm" data-act="procEdit" data-id="${p.id}">${ic('edit', 14)} Editar</button>` : ''}${close}</div></div>
+    ${mgr ? `<div class="tabs"><button class="${tab === 'std' ? 'on' : ''}" data-act="drTab" data-t="std">Trabalho Padrão</button><button class="${tab === 'hist' ? 'on' : ''}" data-act="drTab" data-t="hist">Histórico de alterações</button></div>` : ''}</div>
+    <div class="dr-b">${body}</div>`;
+}
+const docBtn = (p, k, i, x) => `<button class="doc" data-act="doc" data-p="${p.id}" data-k="${k}" data-i="${i}"><span class="fileic">${ic(fileIc(x.t), 16)}</span><span style="flex:1"><b>${esc(x.n)}</b><small>${esc(x.s)}</small></span>${badge(x.t, 'outline')}</button>`;
+
+/* ============================== Modais ============================== */
+const MODALS = {};
+function openModal(m) { UI.modal = m; renderModal(); }
+function closeModal() { UI.modal = null; renderModal(); }
+function renderModal() {
+  const root = $('#modal-root');
+  if (!UI.modal) { root.hidden = true; root.innerHTML = ''; return; }
+  const r = MODALS[UI.modal.type](UI.modal);
+  root.hidden = false;
+  root.innerHTML = `<div class="modal-back" data-act="closeModal"></div><div class="modal ${r.size || ''}" role="dialog" aria-modal="true" aria-label="${esc(r.title)}"><div class="modal-h"><h2>${esc(r.title)}</h2><button class="icon-btn" data-act="closeModal" aria-label="Fechar">${ic('x', 20)}</button></div><div class="modal-b">${r.body}</div>${r.foot ? `<div class="modal-f">${r.foot}</div>` : ''}</div>`;
+  const f = $('.modal [autofocus], .modal input:not([type=hidden]), .modal textarea, .modal select', root); if (f && !('ontouchstart' in window)) f.focus();
+}
+const cancelBtn = `<button type="button" class="btn" data-act="closeModal">Cancelar</button>`;
+const submitBtn = (t, icon = 'check') => `<button type="submit" form="mform" class="btn primary">${ic(icon, 16)} ${t}</button>`;
+const procOpts = sel => `<option value="">Sem Trabalho Padrão cadastrado</option>${S.procedures.filter(isPub).map(p => `<option value="${p.id}" ${sel === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}`;
+const statusOpts = sel => EXEC_STATUS.map(s => `<option ${sel === s ? 'selected' : ''}>${s}</option>`).join('');
+
+MODALS.detail = m => {
+  const i = getInst(m.inst); if (!i) return { title: 'Atividade', body: '<p>Atividade não encontrada.</p>' };
+  const a = i.a, st = instStatus(i), p = a.procId ? proc(a.procId) : null, std = isPub(p), notes = S.notes[i.id] || [];
+  const last = S.executions.filter(e => e.actId === a.id).sort((x, y) => y.date.localeCompare(x.date)).slice(0, 5), mine = UI.p === 'c';
+  return { title: 'Detalhes da atividade', size: 'wide', body: `
+    <dl class="kv"><dt>Atividade</dt><dd><b>${esc(a.name)}</b></dd><dt>Descrição</dt><dd>${esc(a.description || '—')}</dd><dt>Data e horário</dt><dd>${fmtShort(i.date)} às ${i.time}</dd>
+      <dt>Frequência</dt><dd>${a.frequency}</dd><dt>Tempo de referência</dt><dd>${fmtMin(a.refMin)}</dd><dt>Situação</dt><dd>${badge(st, ST_KIND[st])}</dd>
+      <dt>Colaborador</dt><dd>${person(a.userId)}</dd><dt>Trabalho Padrão</dt><dd>${std ? `${esc(p.name)} · v${p.version}` : badge('Sem Trabalho Padrão cadastrado', 'dashed')}</dd>
+      ${std ? `<dt>Responsável pelo processo</dt><dd>${person(p.owner)}</dd>` : ''}</dl>
+    ${notes.length ? `<div class="sec-t">Observações</div><ul class="mini-list">${notes.map(n => `<li><span>${esc(n.text)}</span><span style="color:var(--muted)">${fmtDate(n.date)}</span></li>`).join('')}</ul>` : ''}
+    ${last.length ? `<div class="sec-t">Últimos registros</div><ul class="mini-list">${last.map(e => `<li><span>${fmtDate(e.date)} · ${e.status}</span><b>${e.realMin} min <span style="font-weight:400;color:var(--muted)">(ref. ${e.refMin || '—'})</span></b></li>`).join('')}</ul>` : ''}`,
+    foot: `<button class="btn" data-act="std" data-p="${std ? p.id : ''}" data-inst="${i.id}">${ic('book', 16)} Consultar procedimento</button>
+      ${mine ? `<button class="btn" data-act="noteOpen" data-inst="${i.id}">${ic('note', 16)} Observação</button><button class="btn" data-act="resched" data-inst="${i.id}">${ic('swap', 16)} Reagendar</button><button class="btn" data-act="actEdit" data-id="${a.id}" data-date="${i.date}">${ic('edit', 16)} Editar</button><button class="btn" data-act="manualNew" data-id="${a.id}" data-date="${i.date}">Registrar tempo</button>
+      ${st === 'Em andamento' ? `<button class="btn primary" data-act="openTimer">Abrir cronômetro</button>` : !IDX[i.id] ? `<button class="btn primary" data-act="start" data-inst="${i.id}">${ic('play', 16)} Iniciar atividade</button>` : ''}` : ''}` };
+};
+
+MODALS.exec = m => {
+  const t = S.timer, i = getInst(m.inst); if (!i) return { title: 'Atividade', body: '' };
+  const a = i.a, p = a.procId ? proc(a.procId) : null;
+  if (m.stage === 'confirm') {
+    const mins = Math.max(1, Math.round(m.elapsed / 60000));
+    return { title: 'Confirmar registro de tempo', size: 'sm', body: `<form id="mform" data-submit="execSave">
+      <p style="margin-bottom:12px"><b>${esc(a.name)}</b><br><span style="color:var(--muted)">Tempo cronometrado (sem as pausas): <b>${clock(m.elapsed / 1000)}</b>. Ajuste se precisar antes de salvar.</span></p>
+      <div class="row2"><div class="field"><label for="mins">Tempo real (min)</label><input id="mins" name="mins" type="number" min="1" step="1" value="${mins}" required></div>
+      <div class="field"><label for="est">Status da execução</label><select id="est" name="status">${statusOpts('Concluída')}</select></div></div>
+      <div class="field"><label for="obs">Observação (opcional)</label><textarea id="obs" name="note" placeholder="Algo que ajude a entender o processo, como um bloqueio ou uma etapa confusa">${esc((t && t.note) || '')}</textarea></div>
+      <p style="color:var(--muted);font-size:12.5px">Tempo de referência: ${fmtMin(a.refMin)}. Este registro serve para analisar processos, não para avaliar pessoas.</p></form>`,
+      foot: `<button class="btn" data-act="execBack">Voltar ao cronômetro</button>${submitBtn('Salvar registro')}` };
+  }
+  if (!t) return { title: 'Execução', body: '<p>Nenhuma atividade em andamento.</p>' };
+  const sec = elapsedMs() / 1000, pct = a.refMin ? Math.min(100, sec / 60 / a.refMin * 100) : 0, chk = t.checks || {};
+  return { title: 'Executando atividade', size: 'wide', body: `<div class="tm"><div class="tm-name">${esc(a.name)}</div>
+    <div class="tm-clock" data-clock>${clock(sec)}</div><div>${t.running ? badge('Em execução', 'teal') : badge('Pausada', 'amber')}</div>
+    ${a.refMin ? `<div class="tm-bar"><i data-prog style="width:${pct}%"></i></div>` : ''}
+    <div class="tm-ref">Tempo de referência: ${fmtMin(a.refMin)} · o cronômetro conta só o tempo ativo, descontando as pausas</div>
+    <div class="tm-btns">${t.running ? `<button class="btn" data-act="pause">${ic('pause', 16)} Pausar</button>` : `<button class="btn" data-act="resume">${ic('play', 16)} Retomar</button>`}<button class="btn primary" data-act="finish">${ic('stop', 16)} Finalizar</button></div></div>
+    ${isPub(p) ? `<div class="sec-t">Trabalho Padrão · ${esc(p.name)}</div><ol class="steps">${p.steps.map((s, k) => `<li class="step ${chk[k] ? 'ok' : ''}"><label><input type="checkbox" data-timerchk="${k}" ${chk[k] ? 'checked' : ''}><span class="n">${k + 1}</span><span><b>${esc(s.t)}</b>${s.d ? `<p>${esc(s.d)}</p>` : ''}</span></label></li>`).join('')}</ol>` : `<div class="note">${ic('info', 16)}<div>Sem Trabalho Padrão cadastrado para esta atividade. Você pode registrar o tempo normalmente.</div></div>`}
+    <div class="field" style="margin-top:14px"><label for="tnote">Observação (opcional)</label><textarea id="tnote" data-timernote placeholder="Anote algo importante desta execução">${esc(t.note || '')}</textarea></div>`,
+    foot: `<button class="btn danger" data-act="discard">Descartar execução</button><button class="btn" data-act="demoPlus" title="Apenas para demonstração">Demo: +5 min</button><button class="btn" data-act="manualNew" data-id="${a.id}" data-date="${i.orig}">Informar tempo manualmente</button>` };
+};
+
+MODALS.manual = m => {
+  const mine = S.activities.filter(a => a.userId === ME.c).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  return { title: 'Registrar tempo manualmente', size: 'sm', body: `<form id="mform" data-submit="manualSave">
+    <div class="field"><label for="ma">Atividade</label><select id="ma" name="act">${mine.map(a => `<option value="${a.id}" ${m.id === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}</select></div>
+    <div class="row2"><div class="field"><label for="md">Data</label><input id="md" name="date" type="date" max="${TODAY}" value="${m.date && m.date <= TODAY ? m.date : TODAY}" required></div>
+    <div class="field"><label for="mm">Tempo real (min)</label><input id="mm" name="mins" type="number" min="1" step="1" required></div></div>
+    <div class="field"><label for="ms">Status da execução</label><select id="ms" name="status">${statusOpts('Concluída')}</select></div>
+    <div class="field"><label for="mo">Observação (opcional)</label><textarea id="mo" name="note"></textarea></div></form>`, foot: cancelBtn + submitBtn('Salvar registro') };
+};
+
+MODALS.note = m => {
+  const i = getInst(m.inst), ex = S.notes[m.inst] || [];
+  return { title: 'Adicionar observação', size: 'sm', body: `<form id="mform" data-submit="noteSave"><p style="margin-bottom:10px;color:var(--muted)">${esc(i ? i.a.name : '')} · ${i ? fmtShort(i.date) : ''}</p>
+    <div class="field"><label for="nt">Observação</label><textarea id="nt" name="text" required placeholder="Ex.: Aguardando retorno da área financeira"></textarea></div>
+    ${ex.length ? `<div class="sec-t">Observações anteriores</div><ul class="mini-list">${ex.map(n => `<li><span>${esc(n.text)}</span><span style="color:var(--muted)">${fmtDate(n.date)}</span></li>`).join('')}</ul>` : ''}</form>`, foot: cancelBtn + submitBtn('Salvar observação') };
+};
+
+function nextOcc(a) { for (let d = TODAY, k = 0; k < 62; d = D.add(d, 1), k++) if (occursOn(a, d)) return d; return TODAY; }
+MODALS.actForm = m => {
+  const a = m.id ? act(m.id) : null, mgr = UI.p === 'g';
+  const v = a ? { name: a.name, description: a.description || '', date: m.date || (a.frequency === 'Pontual' ? a.start : nextOcc(a)), time: a.time, ref: a.refMin ?? '', freq: a.frequency, proc: a.procId || '', user: a.userId }
+              : { name: m.name || '', description: '', date: m.date || (UI.p === 'c' ? UI.day : TODAY), time: '09:00', ref: '', freq: 'Pontual', proc: '', user: m.user || ME.c };
+  return { title: a ? 'Editar atividade' : (mgr ? 'Adicionar atividade à agenda' : 'Nova atividade'), size: 'wide', body: `<form id="mform" data-submit="actSave"><input type="hidden" name="id" value="${a ? a.id : ''}">
+    <div class="field"><label for="an1">Nome da atividade *</label><input id="an1" name="name" type="text" required value="${esc(v.name)}" placeholder="Ex.: Verificação de chamados"></div>
+    <div class="field"><label for="an2">Descrição</label><textarea id="an2" name="description">${esc(v.description)}</textarea></div>
+    <div class="row3"><div class="field"><label for="an3">Data *</label><input id="an3" name="date" type="date" required value="${v.date}"><small>Para atividades recorrentes, define o dia de início, da semana ou do mês.</small></div>
+      <div class="field"><label for="an4">Horário</label><input id="an4" name="time" type="time" value="${v.time}"></div>
+      <div class="field"><label for="an5">Tempo de referência (min)</label><input id="an5" name="refMin" type="number" min="1" step="1" value="${v.ref}" placeholder="A definir"><small>Deixe em branco se ainda não for conhecido.</small></div></div>
+    <div class="row2"><div class="field"><label for="an6">Frequência</label><select id="an6" name="frequency">${FREQS.map(f => `<option ${v.freq === f ? 'selected' : ''}>${f}</option>`).join('')}</select></div>
+      <div class="field"><label for="an7">Procedimento relacionado</label><select id="an7" name="procId" data-onproc>${procOpts(v.proc)}</select><small>Pode ficar sem padrão: a atividade não precisa estar documentada.</small></div></div>
+    ${mgr ? `<div class="field"><label for="an8">Colaborador</label><select id="an8" name="userId">${TEAM.map(u => `<option value="${u}" ${v.user === u ? 'selected' : ''}>${PEOPLE[u].name}</option>`).join('')}</select></div>` : ''}</form>`, foot: cancelBtn + submitBtn(a ? 'Salvar alterações' : 'Adicionar à agenda') };
+};
+
+MODALS.resched = m => {
+  const i = getInst(m.inst), a = i.a;
+  return { title: 'Reagendar atividade', size: 'sm', body: `<form id="mform" data-submit="reschedSave"><p style="margin-bottom:12px"><b>${esc(a.name)}</b><br><span style="color:var(--muted)">Atual: ${fmtShort(i.date)} às ${i.time}</span></p>
+    <div class="row2"><div class="field"><label for="rd">Nova data</label><input id="rd" name="date" type="date" required value="${i.date}"></div><div class="field"><label for="rt">Novo horário</label><input id="rt" name="time" type="time" required value="${i.time}"></div></div>
+    ${a.frequency !== 'Pontual' ? `<div class="field"><label class="lbl">Aplicar a</label><label class="chk"><input type="radio" name="scope" value="this" checked> Somente esta ocorrência</label><label class="chk"><input type="radio" name="scope" value="series"> Toda a série (${a.frequency.toLowerCase()})</label></div>` : ''}</form>`, foot: cancelBtn + submitBtn('Reagendar') };
+};
+
+MODALS.assoc = m => {
+  const n = S.activities.filter(a => a.name === m.name).length;
+  return { title: 'Associar procedimento', size: 'sm', body: `<form id="mform" data-submit="assocSave"><input type="hidden" name="name" value="${esc(m.name)}"><p style="margin-bottom:12px"><b>${esc(m.name)}</b><br><span style="color:var(--muted)">Vale para as ${n} atividade${n > 1 ? 's' : ''} com este nome na agenda da equipe.</span></p>
+    <div class="field"><label for="ap">Procedimento publicado</label><select id="ap" name="procId" required><option value="">Selecione…</option>${S.procedures.filter(isPub).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></div></form>`, foot: cancelBtn + submitBtn('Associar') };
+};
+
+MODALS.hist = m => {
+  const a = act(m.id), list = S.executions.filter(e => e.actId === m.id).sort((x, y) => y.date.localeCompare(x.date)).slice(0, 30);
+  return { title: 'Histórico de execução', size: 'wide', body: `<p style="margin-bottom:10px"><b>${esc(a.name)}</b> · ${esc(PEOPLE[a.userId].name)} · últimos ${list.length} registros</p>
+    ${list.length ? `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Data</th><th class="num">Referência</th><th class="num">Tempo real</th><th>Status</th><th>Observação</th></tr></thead><tbody>${list.map(e => `<tr><td>${fmtDate(e.date)}</td><td class="num">${e.refMin || '—'}</td><td class="num"><b>${e.realMin} min</b></td><td>${badge(e.status, e.status === 'Concluída' ? 'green' : 'amber')}</td><td style="color:var(--muted)">${esc(e.note) || '—'}</td></tr>`).join('')}</tbody></table></div>` : empty('clock', 'Sem registros ainda', 'Os registros aparecem aqui assim que a atividade for executada.')}` };
+};
+
+MODALS.sugForm = m => ({ title: 'Nova sugestão de melhoria', body: `<form id="mform" data-submit="sugSave">
+  <div class="field"><label for="sa">Atividade relacionada</label><select id="sa" name="activity" required>${distinctNames().map(n => `<option ${m.activity === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+  <div class="field"><label for="sd">Descrição da oportunidade</label><textarea id="sd" name="description" required placeholder="Ex.: Identifiquei uma etapa que poderia ser simplificada."></textarea></div>
+  <div class="field"><label for="ss">Sugestão de melhoria</label><textarea id="ss" name="suggestion" required placeholder="O que você mudaria?"></textarea></div>
+  <p style="color:var(--muted);font-size:12.5px">A gestão vai analisar a sugestão. O procedimento oficial só muda após o fluxo de revisão.</p></form>`, foot: cancelBtn + submitBtn('Enviar sugestão') });
+
+MODALS.sugReply = m => {
+  const s = S.suggestions.find(x => x.id === m.id);
+  return { title: 'Analisar sugestão', body: `<form id="mform" data-submit="sugReplySave"><input type="hidden" name="id" value="${s.id}">
+    <p style="margin-bottom:6px"><b>${esc(s.activity)}</b> · ${esc(PEOPLE[s.userId].name)} · ${fmtDate(s.date)}</p><p style="color:var(--ink2);margin-bottom:4px"><b>Oportunidade:</b> ${esc(s.description)}</p><p style="color:var(--ink2);margin-bottom:12px"><b>Sugestão:</b> ${esc(s.suggestion)}</p>
+    <div class="field"><label for="rs">Status da análise</label><select id="rs" name="status">${SUGG_STATUS.map(x => `<option ${s.status === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+    <div class="field"><label for="rr">Retorno para a equipe (opcional)</label><textarea id="rr" name="response">${esc(s.response)}</textarea></div>
+    <div class="note">${ic('info', 16)}<div>Alterar o status não muda o procedimento oficial. Para isso, abra o procedimento e siga o fluxo de revisão.</div></div></form>`, foot: cancelBtn + submitBtn('Salvar análise') };
+};
+
+MODALS.adjRef = m => {
+  const x = analysis('all').find(y => y.name === m.n), sug = x ? Math.round(x.mean / 5) * 5 : '';
+  return { title: 'Ajustar tempo de referência', size: 'sm', body: `<form id="mform" data-submit="adjRefSave"><input type="hidden" name="n" value="${esc(m.n)}"><p style="margin-bottom:12px"><b>${esc(m.n)}</b><br><span style="color:var(--muted)">Referência atual: ${x ? fmtMin(x.ref) : '—'} · média real: ${x ? num(x.mean, 1) + ' min' : '—'}</span></p>
+    <div class="field"><label for="ar">Novo tempo de referência (min)</label><input id="ar" name="ref" type="number" min="1" step="1" required value="${sug}"></div>
+    <p style="color:var(--muted);font-size:12.5px">Atualiza o procedimento (com registro no histórico) e as atividades da agenda. Os registros anteriores são mantidos.</p></form>`, foot: cancelBtn + submitBtn('Atualizar referência') };
+};
+
+MODALS.doc = m => {
+  const p = proc(m.p), it = p[m.k][m.i];
+  const sample = it.t === 'XLSX' ? `<table><thead><tr><th>Item</th><th>Responsável</th><th>Status</th><th>Atualizado</th></tr></thead><tbody><tr><td>Item 001</td><td>${PEOPLE[p.owner].short}</td><td>Em dia</td><td>${fmtDate(p.updated)}</td></tr><tr><td>Item 002</td><td>${PEOPLE[p.capable[0]].short}</td><td>Pendente</td><td>${fmtDate(p.updated)}</td></tr><tr><td>Item 003</td><td>${PEOPLE[p.owner].short}</td><td>Em dia</td><td>${fmtDate(p.updated)}</td></tr></tbody></table>`
+    : it.t === 'Vídeo' ? `<div class="player">${ic('play', 48)}</div>` : `<div class="sk" style="width:92%"></div><div class="sk" style="width:80%"></div><ul>${p.steps.slice(0, 3).map(s => `<li>${esc(s.t)}</li>`).join('')}</ul><div class="sk" style="width:88%"></div><div class="sk" style="width:60%"></div>`;
+  return { title: it.n, size: 'wide', body: `<div class="chips" style="margin-bottom:10px">${badge(it.t, 'blue-o')}${badge(it.s, 'outline')}${badge('Material fictício', 'dashed')}</div><div class="docpage"><h3>${esc(it.n)}</h3><small style="color:var(--muted)">Apoia o procedimento "${esc(p.name)}". Conteúdo ilustrativo criado para a demonstração.</small>${sample}</div>` };
+};
+
+MODALS.about = () => ({ title: 'Sobre o protótipo', size: 'wide', body: `
+  <p style="margin-bottom:10px"><b>Trabalho Padrão</b> conecta a rotina dos colaboradores à gestão dos processos: organizar o trabalho, consultar o padrão, executar, registrar, analisar e melhorar.</p>
+  <div class="note warn">${ic('alert', 16)}<div>Protótipo de demonstração. Todos os dados são fictícios e ficam apenas neste navegador (regerados a cada novo dia). <b>Não há integração</b> com Microsoft 365, SharePoint, Power BI ou Power Automate. O visual é só inspirado no Fluent Design.</div></div>
+  <div class="sec-t">Roteiro sugerido de demonstração</div>
+  <ol class="roteiro"><li>Abrir a visão do colaborador (Ana Souza).</li><li>Ver a agenda semanal e navegar entre os dias.</li><li>Selecionar uma atividade, como "Verificação de chamados".</li><li>Consultar o Trabalho Padrão dela.</li><li>Iniciar, pausar e finalizar com o cronômetro (use "Demo: +5 min" para simular tempo).</li><li>Conferir o registro em "Minhas atividades".</li><li>Alternar para a visão do gestor (Carlos Mendes).</li><li>Ver a distribuição das atividades da equipe.</li><li>Abrir a análise dos processos, comparando referência e tempo real.</li><li>Ver as oportunidades de melhoria e a sugestão registrada.</li></ol>`, foot: `<button class="btn primary" data-act="closeModal">Entendi</button>` });
+
+/* ============================== Formulário de procedimento ============================== */
+const blankProc = name => ({ id: null, name: name || '', category: CATS[0], description: '', objective: '', frequency: 'Diária', refMin: '', owner: 'u3', capable: [], steps: [{ t: '', d: '' }], systems: '', docs: '', materials: '', summary: '' });
+const procToForm = p => ({ ...p, refMin: p.refMin ?? '', systems: p.systems.join('\n'), docs: p.docs.map(d => d.n).join('\n'), materials: p.materials.map(d => d.n).join('\n'), steps: p.steps.map(s => ({ ...s })), capable: [...p.capable], summary: '' });
+function readProcForm(fd) {
+  const pf = UI.pf, g = k => (fd.get(k) || '').toString();
+  Object.assign(pf, { name: g('name'), category: g('category'), description: g('description'), objective: g('objective'), frequency: g('frequency'), refMin: g('refMin'), owner: g('owner'), systems: g('systems'), docs: g('docs'), materials: g('materials'), summary: g('summary'), capable: fd.getAll('cap') });
+  const st = fd.getAll('st'), sd = fd.getAll('sd'); pf.steps = st.map((t, i) => ({ t, d: sd[i] || '' }));
+}
+MODALS.procForm = () => {
+  const pf = UI.pf, edit = !!pf.id, lines = (k, ph) => `<textarea name="${k}" rows="3" placeholder="${ph}">${esc(pf[k])}</textarea>`;
+  return { title: edit ? 'Editar procedimento' : 'Novo procedimento', size: 'xl', body: `<form id="mform" data-submit="procSave">
+    <div class="row2"><div class="field"><label for="pn">Nome da atividade *</label><input id="pn" name="name" type="text" required value="${esc(pf.name)}"></div>
+      <div class="field"><label for="pc">Categoria</label><select id="pc" name="category">${CATS.map(c => `<option ${pf.category === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+    <div class="row2"><div class="field"><label for="pd">O que é (descrição)</label><textarea id="pd" name="description" rows="2">${esc(pf.description)}</textarea></div>
+      <div class="field"><label for="po">Objetivo</label><textarea id="po" name="objective" rows="2">${esc(pf.objective)}</textarea></div></div>
+    <div class="row3"><div class="field"><label for="pf">Quando (frequência)</label><select id="pf" name="frequency">${FREQS.map(f => `<option ${pf.frequency === f ? 'selected' : ''}>${f}</option>`).join('')}</select></div>
+      <div class="field"><label for="pr">Quanto (tempo de referência, min)</label><input id="pr" name="refMin" type="number" min="1" value="${esc(pf.refMin)}"></div>
+      <div class="field"><label for="pw">Quem (responsável pelo processo)</label><select id="pw" name="owner">${[...TEAM, 'm1'].map(u => `<option value="${u}" ${pf.owner === u ? 'selected' : ''}>${PEOPLE[u].name}</option>`).join('')}</select></div></div>
+    <div class="field"><span class="lbl">Pessoas capacitadas</span><div class="chk-grid">${TEAM.map(u => `<label class="chk"><input type="checkbox" name="cap" value="${u}" ${pf.capable.includes(u) ? 'checked' : ''}> ${PEOPLE[u].name}</label>`).join('')}</div></div>
+    <div class="sec-t">Como fazer · etapas</div>
+    ${pf.steps.map((s, i) => `<div class="step-row"><span class="n">${i + 1}</span><div class="grow"><input type="text" name="st" value="${esc(s.t)}" placeholder="Título da etapa" aria-label="Título da etapa ${i + 1}"><input type="text" name="sd" value="${esc(s.d)}" placeholder="Detalhe (opcional)" aria-label="Detalhe da etapa ${i + 1}"></div>
+      <div class="row-acts"><button type="button" class="icon-btn" data-act="stepMove" data-i="${i}" data-d="-1" aria-label="Subir">${ic('up', 16)}</button><button type="button" class="icon-btn" data-act="stepMove" data-i="${i}" data-d="1" aria-label="Descer">${ic('down', 16)}</button><button type="button" class="icon-btn" data-act="stepDel" data-i="${i}" aria-label="Remover etapa">${ic('trash', 16)}</button></div></div>`).join('')}
+    <button type="button" class="btn sm" data-act="stepAdd">${ic('plus', 14)} Adicionar etapa</button>
+    <div class="sec-t">Recursos (um por linha)</div>
+    <div class="row3"><div class="field"><label>Sistemas</label>${lines('systems', 'Sistema de chamados')}</div><div class="field"><label>Documentos relacionados</label>${lines('docs', 'Política de priorização')}</div><div class="field"><label>Materiais de apoio</label>${lines('materials', 'Guia rápido')}</div></div>
+    ${edit ? `<div class="field"><label for="ps">Resumo da alteração (vai para o histórico)</label><input id="ps" name="summary" type="text" value="${esc(pf.summary)}" placeholder="Ex.: Inclusão do critério de prazo na etapa 3"></div>` : `<div class="note">${ic('info', 16)}<div>O procedimento será criado como <b>Rascunho</b> e só aparece para os colaboradores depois de percorrer o fluxo até Publicado.</div></div>`}</form>`,
+    foot: cancelBtn + submitBtn(edit ? 'Salvar alterações' : 'Criar rascunho') };
+};
+
+/* ============================== Ações ============================== */
+const toast = msg => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; $('#toasts').appendChild(t); setTimeout(() => t.remove(), 3400); };
+const weekdayOk = date => { const w = D.parse(date).getDay(); if (w === 0 || w === 6) { toast('Escolha um dia útil (segunda a sexta).'); return false; } return true; };
+function addExec(i, mins, status, note) {
+  const a = i.a, prior = (S.notes[i.id] || []).map(n => n.text), text = [...prior, (note || '').trim()].filter(Boolean).join(' · ');
+  S.executions = S.executions.filter(e => !(e.actId === a.id && e.date === i.orig));
+  S.executions.push({ id: uid('e'), actId: a.id, date: i.orig, userId: a.userId, name: a.name, procId: a.procId, refMin: a.refMin, realMin: mins, status, note: text });
+  delete S.notes[i.id];
+}
+function bump(v) { const [a, b] = v.split('.').map(Number); return `${a}.${(b || 0) + 1}`; }
+const done = (msg) => { save(); closeModal(); render(); if (msg) toast(msg); };
+
+const A = {
+  navToggle() { document.body.classList.toggle('nav-open'); },
+  profile(d) { location.hash = '#/' + d.p + '/' + ROUTES[d.p][0][0]; },
+  go(d) { location.hash = d.href; },
+  closeModal() { closeModal(); },
+  closeDrawer() { UI.drawer = null; renderDrawer(); },
+  reset() { if (!confirm('Restaurar os dados de demonstração? Registros e alterações feitos neste navegador serão perdidos.')) return; S = buildSeed(); save(); UI.drawer = null; UI.modal = null; render(); toast('Dados de demonstração restaurados.'); },
+  about() { document.body.classList.remove('nav-open'); openModal({ type: 'about' }); },
+  /* agenda */
+  selDay(d) { UI.day = d.d; UI.mon = D.monday(d.d); render(); },
+  weekPrev() { UI.mon = D.add(UI.mon, -7); UI.day = D.add(UI.day, -7); render(); },
+  weekNext() { UI.mon = D.add(UI.mon, 7); UI.day = D.add(UI.day, 7); render(); },
+  weekToday() { UI.day = TODAY; UI.mon = D.monday(TODAY); render(); },
+  detail(d) { openModal({ type: 'detail', inst: d.inst }); },
+  std(d) { UI.drawer = { procId: d.p || null, instId: d.inst || null, tab: 'std', done: {} }; if (UI.modal && UI.modal.type !== 'exec') closeModal(); renderDrawer(); },
+  drTab(d) { UI.drawer.tab = d.t; renderDrawer(); },
+  doc(d) { openModal({ type: 'doc', p: d.p, k: d.k, i: +d.i }); },
+  procCat(d) { UI.f.procCat = d.c; render(); },
+  hMore() { UI.f.hLimit += 60; render(); },
+  /* cronômetro */
+  start(d) {
+    if (S.timer && S.timer.instId !== d.inst) { toast('Você já tem uma atividade em andamento. Finalize-a antes de iniciar outra.'); return A.openTimer(); }
+    if (!S.timer) S.timer = { instId: d.inst, acc: 0, running: true, since: Date.now(), note: '', checks: {} };
+    save(); renderTop(); openModal({ type: 'exec', inst: S.timer.instId, stage: 'run' }); render();
+  },
+  openTimer() { if (S.timer) openModal({ type: 'exec', inst: S.timer.instId, stage: 'run' }); },
+  pause() { const t = S.timer; if (!t || !t.running) return; t.acc += Date.now() - t.since; t.running = false; save(); renderTop(); renderModal(); },
+  resume() { const t = S.timer; if (!t || t.running) return; t.since = Date.now(); t.running = true; save(); renderTop(); renderModal(); },
+  finish() { const t = S.timer; if (!t) return; if (t.running) { t.acc += Date.now() - t.since; t.running = false; } save(); renderTop(); openModal({ type: 'exec', inst: t.instId, stage: 'confirm', elapsed: t.acc }); },
+  execBack() { openModal({ type: 'exec', inst: S.timer.instId, stage: 'run' }); },
+  discard() { if (!confirm('Descartar esta execução? O tempo cronometrado não será salvo.')) return; S.timer = null; save(); closeModal(); render(); toast('Execução descartada.'); },
+  demoPlus() { const t = S.timer; if (!t) return; t.acc += 5 * 60000; save(); $$('[data-clock]').forEach(n => n.textContent = clock(elapsedMs() / 1000)); toast('Simulados +5 min no cronômetro (apenas demonstração).'); },
+  execSave(fd) {
+    const m = UI.modal, i = getInst(m.inst), mins = Math.round(Number(fd.get('mins')));
+    if (!(mins > 0)) return toast('Informe o tempo em minutos (mínimo 1).');
+    addExec(i, mins, fd.get('status'), fd.get('note')); S.timer = null; done(`Registro salvo · ${mins} min em "${i.a.name}"`);
+  },
+  manualNew(d) { openModal({ type: 'manual', id: d.id || '', date: d.date || '' }); },
+  manualSave(fd) {
+    const a = act(fd.get('act')), date = fd.get('date'), mins = Math.round(Number(fd.get('mins')));
+    if (!a || !date || !(mins > 0)) return toast('Preencha atividade, data e tempo.');
+    addExec(mk(a, date, date, a.time), mins, fd.get('status'), fd.get('note')); done(`Registro salvo · ${mins} min em "${a.name}"`);
+  },
+  noteOpen(d) { openModal({ type: 'note', inst: d.inst }); },
+  noteSave(fd) { const id = UI.modal.inst, t = (fd.get('text') || '').trim(); if (!t) return; (S.notes[id] = S.notes[id] || []).push({ date: TODAY, text: t }); done('Observação adicionada.'); },
+  /* atividades */
+  actNew(d) { openModal({ type: 'actForm', id: '', date: d.date || '' }); },
+  actEdit(d) { openModal({ type: 'actForm', id: d.id, date: d.date || '' }); },
+  actSave(fd) {
+    const id = fd.get('id'), name = (fd.get('name') || '').trim(), date = fd.get('date');
+    if (!name) return toast('Informe o nome da atividade.');
+    if (!date || !weekdayOk(date)) return;
+    const freq = fd.get('frequency'), ref = fd.get('refMin') ? Number(fd.get('refMin')) : null, mgr = UI.p === 'g';
+    let a = id ? act(id) : null; const old = a ? a.frequency : null;
+    if (!a) { a = { id: uid('a'), moved: {}, ended: false, start: date }; S.activities.push(a); }
+    Object.assign(a, { name, description: (fd.get('description') || '').trim(), userId: mgr ? fd.get('userId') : ME.c, procId: fd.get('procId') || null, refMin: ref, frequency: freq, time: fd.get('time') || '09:00' });
+    if (!id || freq === 'Pontual' || old !== freq) a.start = date;
+    a.wd = D.parse(date).getDay(); a.dom = D.parse(date).getDate();
+    if (!a.refMin && a.procId) a.refMin = proc(a.procId).refMin;
+    if (UI.p === 'c') { UI.day = date; UI.mon = D.monday(date); }
+    done(mgr ? `Atividade na agenda de ${PEOPLE[a.userId].name}.` : `Atividade salva para ${fmtShort(date)}.`);
+  },
+  resched(d) { openModal({ type: 'resched', inst: d.inst }); },
+  reschedSave(fd) {
+    const i = getInst(UI.modal.inst), a = i.a, date = fd.get('date'), time = fd.get('time');
+    if (!weekdayOk(date)) return;
+    const scope = fd.get('scope') || 'series';
+    if (a.frequency === 'Pontual') { a.start = date; a.time = time; }
+    else if (scope === 'this') a.moved[i.orig] = { date, time };
+    else { a.time = time; if (a.frequency === 'Semanal') a.wd = D.parse(date).getDay(); if (a.frequency === 'Mensal') a.dom = D.parse(date).getDate(); }
+    UI.day = date; UI.mon = D.monday(date); done('Atividade reagendada.');
+  },
+  assoc(d) { openModal({ type: 'assoc', name: d.name }); },
+  assocSave(fd) {
+    const n = fd.get('name'), pid = fd.get('procId'); if (!pid) return toast('Selecione um procedimento.');
+    S.activities.filter(a => a.name === n).forEach(a => { a.procId = pid; if (!a.refMin) a.refMin = proc(pid).refMin; });
+    UI.drawer = null; done(`Procedimento associado a "${n}".`);
+  },
+  hist(d) { openModal({ type: 'hist', id: d.id }); },
+  /* sugestões */
+  sugNew(d) { UI.drawer = null; renderDrawer(); openModal({ type: 'sugForm', activity: d.activity || '' }); },
+  sugSave(fd) {
+    S.suggestions.push({ id: uid('s'), userId: ME.c, activity: fd.get('activity'), date: TODAY, description: fd.get('description').trim(), suggestion: fd.get('suggestion').trim(), status: 'Nova', response: '' });
+    done('Sugestão enviada para a gestão.');
+  },
+  sugReply(d) { openModal({ type: 'sugReply', id: d.id }); },
+  sugReplySave(fd) { const s = S.suggestions.find(x => x.id === fd.get('id')); s.status = fd.get('status'); s.response = (fd.get('response') || '').trim(); done('Análise salva.'); },
+  melGo(d) { UI.f.melAct = d.n; location.hash = '#/g/melhorias'; },
+  melClear() { UI.f.melAct = ''; render(); },
+  /* gestão */
+  gStatus(d) { UI.f.gStatus = UI.f.gStatus === d.s ? '' : d.s; render(); },
+  gStatusGo(d) { UI.f.gStatus = d.s; location.hash = '#/g/gestao'; },
+  gOldGo() { UI.f.gOld = true; },
+  dNoGo() { UI.f.dNo = true; },
+  gClear() { Object.assign(UI.f, { gStatus: '', gOwner: '', gOld: false, gQ: '' }); render(); },
+  anSel(d) { UI.an = d.n; render(); },
+  adjRef(d) { openModal({ type: 'adjRef', n: d.n }); },
+  adjRefSave(fd) {
+    const n = fd.get('n'), ref = Math.round(Number(fd.get('ref'))); if (!(ref > 0)) return toast('Informe um tempo válido.');
+    const acts = S.activities.filter(a => a.name === n), pid = (acts.find(a => a.procId) || {}).procId, p = pid ? proc(pid) : null;
+    acts.forEach(a => a.refMin = ref);
+    if (p) { const was = p.refMin; p.refMin = ref; p.updated = TODAY; p.version = bump(p.version); p.history.unshift({ date: TODAY, who: ME.g, note: `Tempo de referência ajustado de ${was} para ${ref} min (análise dos processos)` }); }
+    done(`Tempo de referência de "${n}" atualizado para ${ref} min.`);
+  },
+  procNew(d) { UI.pf = blankProc(d.name); UI.drawer = null; renderDrawer(); openModal({ type: 'procForm' }); },
+  procEdit(d) { UI.pf = procToForm(proc(d.id)); openModal({ type: 'procForm' }); },
+  stepAdd() { readProcForm(new FormData($('#mform'))); UI.pf.steps.push({ t: '', d: '' }); renderModal(); },
+  stepDel(d) { readProcForm(new FormData($('#mform'))); UI.pf.steps.splice(+d.i, 1); if (!UI.pf.steps.length) UI.pf.steps.push({ t: '', d: '' }); renderModal(); },
+  stepMove(d) { readProcForm(new FormData($('#mform'))); const s = UI.pf.steps, i = +d.i, j = i + +d.d; if (j < 0 || j >= s.length) return; [s[i], s[j]] = [s[j], s[i]]; renderModal(); },
+  procSave(fd) {
+    readProcForm(fd); const pf = UI.pf, steps = pf.steps.filter(s => s.t.trim()).map(s => ({ t: s.t.trim(), d: s.d.trim() }));
+    if (!pf.name.trim()) return toast('Informe o nome.'); if (!steps.length) return toast('Inclua ao menos uma etapa.');
+    const lines = k => pf[k].split('\n').map(x => x.trim()).filter(Boolean);
+    const keep = (k, old, t) => lines(k).map(n => old.find(o => o.n === n) || { n, t, s: 'Material fictício' });
+    const old = pf.id ? proc(pf.id) : null;
+    const data = { name: pf.name.trim(), category: pf.category, description: pf.description.trim(), objective: pf.objective.trim(), frequency: pf.frequency, refMin: pf.refMin ? Number(pf.refMin) : null, owner: pf.owner, capable: pf.capable, steps,
+      systems: lines('systems'), docs: keep('docs', old ? old.docs : [], 'DOCX'), materials: keep('materials', old ? old.materials : [], 'Guia'), updated: TODAY };
+    let p;
+    if (old) { p = old; const ver = p.status === 'Rascunho' ? p.version : bump(p.version); Object.assign(p, data, { version: ver }); p.history.unshift({ date: TODAY, who: ME.g, note: (pf.summary || '').trim() || `Procedimento editado (v${ver})` }); }
+    else { p = { id: uid('proc'), status: 'Rascunho', version: '0.1', ...data, history: [{ date: TODAY, who: ME.g, note: 'Procedimento criado como rascunho' }] }; S.procedures.push(p); }
+    UI.drawer = { procId: p.id, tab: 'std', done: {} }; done(old ? 'Procedimento atualizado.' : 'Rascunho criado. Percorra o fluxo de revisão para publicar.');
+  },
+  procFlow(d) {
+    const p = proc(d.id), idx = WORKFLOW.indexOf(p.status), to = idx + Number(d.dir);
+    if (to < 0 || to >= WORKFLOW.length) return;
+    if (p.status === 'Publicado' && !confirm('Despublicar este procedimento? Os colaboradores deixarão de visualizá-lo.')) return;
+    p.status = WORKFLOW[to]; p.updated = TODAY;
+    if (p.status === 'Publicado' && p.version.startsWith('0.')) p.version = '1.0';
+    p.history.unshift({ date: TODAY, who: ME.g, note: `Situação alterada para "${p.status}"` });
+    save(); render(); toast(p.status === 'Publicado' ? 'Publicado. Agora os colaboradores podem consultar este procedimento.' : `Situação: ${p.status}`);
+  }
+};
+
+/* ============================== Eventos ============================== */
+document.addEventListener('click', e => {
+  if (e.target.closest('.nav-item')) document.body.classList.remove('nav-open');
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const fn = A[el.dataset.act]; if (fn) { if (el.tagName !== 'A') e.preventDefault(); fn(el.dataset, el, e); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target.closest('form[data-submit]'); if (!f) return;
+  e.preventDefault(); A[f.dataset.submit](new FormData(f), f);
+});
+function onFilter(e) {
+  const t = e.target; if (!t.dataset || !t.dataset.filter) return;
+  const txt = t.type === 'search' || t.type === 'text';
+  if ((e.type === 'input') !== txt) return;
+  UI.f[t.dataset.filter] = t.type === 'checkbox' ? t.checked : t.value;
+  if (t.dataset.filter === 'hPer' || t.dataset.filter === 'hQ') UI.f.hLimit = 60;
+  const pos = t.selectionStart; render();
+  if (txt) { const n = $(`[data-filter="${t.dataset.filter}"]`); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (_) { /* ok */ } } }
+}
+document.addEventListener('input', e => {
+  onFilter(e);
+  if (e.target.matches('[data-timernote]') && S.timer) { S.timer.note = e.target.value; save(); }
+});
+document.addEventListener('change', e => {
+  onFilter(e);
+  const t = e.target;
+  if (t.matches('[data-timerchk]') && S.timer) { S.timer.checks = S.timer.checks || {}; S.timer.checks[t.dataset.timerchk] = t.checked; save(); t.closest('.step').classList.toggle('ok', t.checked); }
+  if (t.matches('[data-stepchk]') && UI.drawer) { UI.drawer.done[t.dataset.stepchk] = t.checked; t.closest('.step').classList.toggle('ok', t.checked); }
+  if (t.matches('[data-onproc]')) { const p = proc(t.value), r = $('[name=refMin]', t.form); if (p && r && !r.value) r.value = p.refMin; }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { if (UI.modal) closeModal(); else if (UI.drawer) A.closeDrawer(); }
+  if (e.key === 'Enter' && e.target.id === 'gsearch') {
+    const q = e.target.value; if (UI.p === 'c') { UI.f.procQ = q; location.hash = '#/c/procedimentos'; } else { UI.f.gQ = q; location.hash = '#/g/gestao'; }
+    if (location.hash === (UI.p === 'c' ? '#/c/procedimentos' : '#/g/gestao')) render();
+  }
+});
+window.addEventListener('hashchange', () => { UI.drawer = null; UI.modal = null; render(); $('#main').scrollTop = 0; });
+setInterval(() => {
+  if (!S.timer) return;
+  const s = elapsedMs() / 1000; $$('[data-clock]').forEach(n => n.textContent = clock(s));
+  const pr = $('[data-prog]'); if (pr) { const i = getInst(S.timer.instId); if (i && i.a.refMin) pr.style.width = Math.min(100, s / 60 / i.a.refMin * 100) + '%'; }
+}, 500);
+
+if (!location.hash) location.hash = '#/c/rotina';
+render();
+
+</script>
+</body>
+</html>
